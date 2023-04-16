@@ -19,6 +19,17 @@ use std::{ptr, ffi::CStr, os::raw::{c_char, c_uint}};
 pub mod errors;
 pub use crate::errors::*;
 
+pub mod phidget;
+pub use phidget::Phidget;
+
+pub mod humidity_sensor;
+pub use humidity_sensor::HumiditySensor;
+
+pub mod temperature_sensor;
+pub use temperature_sensor::TemperatureSensor;
+
+/////////////////////////////////////////////////////////////////////////////
+
 pub(crate) fn check_ret(rc: u32) -> Result<()> {
     match rc {
         0 => Ok(()),
@@ -50,8 +61,6 @@ pub fn library_version() -> Result<String> {
 pub fn library_version_number() -> Result<String> {
     get_ffi_string(|s| unsafe { ffi::Phidget_getLibraryVersionNumber(s) })
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////////
 
