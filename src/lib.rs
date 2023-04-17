@@ -14,7 +14,11 @@
 //!
 
 use phidget_sys as ffi;
-use std::{ptr, ffi::CStr, os::raw::{c_char, c_uint}};
+use std::{
+    ffi::CStr,
+    os::raw::{c_char, c_uint},
+    ptr,
+};
 
 pub mod errors;
 pub use crate::errors::*;

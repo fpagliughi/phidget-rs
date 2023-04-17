@@ -17,3 +17,4 @@ Phidget library for Rust
 phidget-sys = { version = "0.1", path = "phidget-sys" }
 thiserror = "1.0"
 anyhow = "1.0"
+ctrlc = { version = "3.2", features = [ "termination" ] }

@@ -11,15 +11,19 @@
 //
 
 use crate::{Phidget, Result};
-use phidget_sys::{self as ffi, PhidgetHandle, PhidgetHumiditySensorHandle as HumiditySensorHandle};
+use phidget_sys::{
+    self as ffi, PhidgetHandle, PhidgetHumiditySensorHandle as HumiditySensorHandle,
+};
 use std::{mem, os::raw::c_void, ptr};
 
+pub type HumidityCallback = dyn Fn(&HumiditySensor, f64) + Send + 'static;
 
-pub type OnHumidityChangeCallback = dyn Fn(&HumiditySensor, f64) + Send + 'static;
-
+/// Phidget humidity sensor
 pub struct HumiditySensor {
+    // Handle to the sensor for the phidget22 library
     chan: HumiditySensorHandle,
-    cb: Option<Box<OnHumidityChangeCallback>>,
+    // Double-boxed HumidityCallback, if registered
+    cb: Option<*mut c_void>,
 }
 
 impl HumiditySensor {
@@ -33,24 +37,29 @@ impl HumiditySensor {
     }
 
     // Low-level, unsafe, callback for humidity change events.
-    // The context is a pointer the the Rust `HumiditySensor` object.
+    // The context is a double-boxed pointer the the safe Rust callback.
     unsafe extern "C" fn on_humidity_change(
         chan: HumiditySensorHandle,
         ctx: *mut c_void,
         humidity: f64,
     ) {
-        if ctx.is_null() {
-            return;
-        }
-        let psensor = ctx as *mut HumiditySensor;
-        let sensor = Self { chan, cb: None };
-
-        if let Some(ref cb) = (*psensor).cb {
+        if !ctx.is_null() {
+            let cb: &mut Box<HumidityCallback> = &mut *(ctx as *mut _);
+            let sensor = Self { chan, cb: None };
             cb(&sensor, humidity);
+            mem::forget(sensor);
         }
-        mem::forget(sensor);
     }
 
+    // Drop/delete the humidity change callback
+    // This must not be done if the callback is running
+    unsafe fn drop_callback(&mut self) {
+        if let Some(ctx) = self.cb.take() {
+            let _: Box<Box<HumidityCallback>> = unsafe { Box::from_raw(ctx as *mut _) };
+        }
+    }
+
+    /// Get a reference to the underlying sensor handle
     pub fn as_channel(&self) -> &HumiditySensorHandle {
         &self.chan
     }
@@ -59,7 +68,10 @@ impl HumiditySensor {
     pub fn humidity(&self) -> Result<f64> {
         let mut humidity = 0.0;
         unsafe {
-            crate::check_ret(ffi::PhidgetHumiditySensor_getHumidity(self.chan, &mut humidity))?;
+            crate::check_ret(ffi::PhidgetHumiditySensor_getHumidity(
+                self.chan,
+                &mut humidity,
+            ))?;
         }
         Ok(humidity)
     }
@@ -69,26 +81,31 @@ impl HumiditySensor {
     where
         F: Fn(&HumiditySensor, f64) + Send + 'static,
     {
-        self.cb = Some(Box::new(cb));
-        let this = self as *mut _ as *mut c_void;
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<HumidityCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+        self.cb = Some(ctx);
+
         unsafe {
             crate::check_ret(ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
                 self.chan,
                 Some(Self::on_humidity_change),
-                this
+                ctx,
             ))
         }
     }
 
-    /// Removes the change callback.
+    /// Removes the humidity change callback.
     pub fn remove_on_humidity_change_handler(&mut self) -> Result<()> {
-        self.cb = None;
+        // Remove the callback
         unsafe {
-            crate::check_ret(ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
+            let ret = crate::check_ret(ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
                 self.chan,
                 None,
-                ptr::null_mut()
-            ))
+                ptr::null_mut(),
+            ));
+            self.drop_callback();
+            ret
         }
     }
 }
@@ -99,12 +116,17 @@ impl Phidget for HumiditySensor {
     }
 }
 
-impl Drop for HumiditySensor {
-    fn drop(&mut self) {
-        let _ = self.remove_on_humidity_change_handler();
-        unsafe {
-            ffi::PhidgetHumiditySensor_delete(&mut self.chan);
-        }
+impl Default for HumiditySensor {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
+impl Drop for HumiditySensor {
+    fn drop(&mut self) {
+        unsafe {
+            ffi::PhidgetHumiditySensor_delete(&mut self.chan);
+            self.drop_callback();
+        }
+    }
+}
