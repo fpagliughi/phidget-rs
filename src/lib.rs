@@ -24,13 +24,13 @@ pub mod errors;
 pub use crate::errors::*;
 
 pub mod phidget;
-pub use phidget::Phidget;
+pub use crate::phidget::Phidget;
 
 pub mod humidity_sensor;
-pub use humidity_sensor::HumiditySensor;
+pub use crate::humidity_sensor::HumiditySensor;
 
 pub mod temperature_sensor;
-pub use temperature_sensor::TemperatureSensor;
+pub use crate::temperature_sensor::TemperatureSensor;
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -70,7 +70,7 @@ pub fn library_version_number() -> Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    //use super::*;
 
     #[test]
     fn it_works() {}
