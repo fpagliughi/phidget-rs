@@ -10,12 +10,13 @@
 // to those terms.
 //
 
-use crate::{Phidget, Result};
+use crate::{Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetTemperatureSensorHandle as TemperatureSensorHandle,
 };
 use std::{mem, os::raw::c_void, ptr};
 
+/// The function type for the safe Rust temperature change callback.
 pub type TemperatureCallback = dyn Fn(&TemperatureSensor, f64) + Send + 'static;
 
 /// Phidget temperature sensor
@@ -51,8 +52,9 @@ impl TemperatureSensor {
         }
     }
 
-    // Drop/delete the humidity change callback
-    // This must not be done if the callback is running
+    // Drop/delete the temperature change callback.
+    // This deletes the heap memory used by the callback lambda. It must not
+    // be done if the callback is still running.
     unsafe fn drop_callback(&mut self) {
         if let Some(ctx) = self.cb.take() {
             let _: Box<Box<TemperatureCallback>> = unsafe { Box::from_raw(ctx as *mut _) };
@@ -67,12 +69,9 @@ impl TemperatureSensor {
     /// Read the current temperature
     pub fn temperature(&self) -> Result<f64> {
         let mut temperature = 0.0;
-        unsafe {
-            crate::check_ret(ffi::PhidgetTemperatureSensor_getTemperature(
-                self.chan,
-                &mut temperature,
-            ))?;
-        }
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getTemperature(self.chan, &mut temperature)
+        })?;
         Ok(temperature)
     }
 
@@ -86,20 +85,20 @@ impl TemperatureSensor {
         let ctx = Box::into_raw(cb) as *mut c_void;
         self.cb = Some(ctx);
 
-        unsafe {
-            crate::check_ret(ffi::PhidgetTemperatureSensor_setOnTemperatureChangeHandler(
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_setOnTemperatureChangeHandler(
                 self.chan,
                 Some(Self::on_temperature_change),
                 ctx,
-            ))
-        }
+            )
+        })
     }
 
     /// Removes the temperature change callback
     pub fn remove_on_temperature_change_handler(&mut self) -> Result<()> {
         unsafe {
             let ret =
-                crate::check_ret(ffi::PhidgetTemperatureSensor_setOnTemperatureChangeHandler(
+                ReturnCode::result(ffi::PhidgetTemperatureSensor_setOnTemperatureChangeHandler(
                     self.chan,
                     None,
                     ptr::null_mut(),

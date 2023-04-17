@@ -1,4 +1,4 @@
-use phidget::{Phidget, ReturnCode};
+use phidget::Phidget;
 use std::{thread, time::Duration};
 
 const TIMEOUT: Duration = Duration::from_millis(5000);
@@ -6,7 +6,6 @@ const TIMEOUT: Duration = Duration::from_millis(5000);
 fn main() -> anyhow::Result<()> {
     println!("{}", phidget::library_version()?);
     println!("{}", phidget::library_version_number()?);
-    println!("{}", ReturnCode::from(3));
 
     let mut hum_sensor = phidget::HumiditySensor::new();
     hum_sensor.open_wait(TIMEOUT)?;

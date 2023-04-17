@@ -17,11 +17,14 @@ use std::{
     os::raw::{c_char, c_uint},
     ptr,
 };
-use thiserror::Error;
 
 /////////////////////////////////////////////////////////////////////////////
 
-/// Return Codes from the phidgets22 library
+/// Return Codes from the phidgets22 library.
+/// These are all the integer success/failure codes returned by the calls
+/// to the phidget22 library. A zero indicates success, whereas any other
+/// value indicates failure. These are unsigned, so all errors are >0.
+/// This type is a Rust std::error::Error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u32)]
 pub enum ReturnCode {
@@ -74,6 +77,17 @@ pub enum ReturnCode {
     UnknownValLow = 61,
 }
 
+impl ReturnCode {
+    /// Convert the raw return code into a Result, where zero is Ok, and
+    /// everything else is an error.
+    pub fn result(rc: c_uint) -> Result<()> {
+        match rc {
+            0 => Ok(()),
+            _ => Err(ReturnCode::from(rc)),
+        }
+    }
+}
+
 impl std::error::Error for ReturnCode {}
 
 impl fmt::Display for ReturnCode {
@@ -98,6 +112,9 @@ impl fmt::Display for ReturnCode {
 }
 
 impl From<c_uint> for ReturnCode {
+    /// Converts an unsigned integer into a `ReturnCode` error.
+    /// Note that instead of implementing `try_from`, any unknown integer
+    /// value is returned as a `ReturnCode::Unexpected` error.
     fn from(val: c_uint) -> Self {
         use ReturnCode::*;
         match val {
@@ -148,18 +165,13 @@ impl From<c_uint> for ReturnCode {
             59 => Failsafe,
             60 => UnknownValHigh,
             61 => UnknownValLow,
-            _ => Unsupported,
+            _ => Unexpected,
         }
     }
 }
 
-/// The error type for the phidget-rs library.
-#[derive(Error, Debug)]
-pub enum Error {
-    /// A "return code" from the phidget22 library
-    #[error(transparent)]
-    Phidget(#[from] ReturnCode),
-}
+/// The error type for the crate is a phidget22 return code.
+pub type Error = ReturnCode;
 
 /// The default result type for the phidget-rs library
 pub type Result<T> = std::result::Result<T, Error>;

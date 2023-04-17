@@ -10,12 +10,13 @@
 // to those terms.
 //
 
-use crate::{Phidget, Result};
+use crate::{Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetHumiditySensorHandle as HumiditySensorHandle,
 };
 use std::{mem, os::raw::c_void, ptr};
 
+/// The function signature for the safe Rust humidity change callback.
 pub type HumidityCallback = dyn Fn(&HumiditySensor, f64) + Send + 'static;
 
 /// Phidget humidity sensor
@@ -51,8 +52,9 @@ impl HumiditySensor {
         }
     }
 
-    // Drop/delete the humidity change callback
-    // This must not be done if the callback is running
+    // Drop/delete the humidity change callback.
+    // This deletes the heap memory used by the callback lambda. It must not
+    // be done if the callback is still running.
     unsafe fn drop_callback(&mut self) {
         if let Some(ctx) = self.cb.take() {
             let _: Box<Box<HumidityCallback>> = unsafe { Box::from_raw(ctx as *mut _) };
@@ -67,12 +69,9 @@ impl HumiditySensor {
     /// Read the current humidity value.
     pub fn humidity(&self) -> Result<f64> {
         let mut humidity = 0.0;
-        unsafe {
-            crate::check_ret(ffi::PhidgetHumiditySensor_getHumidity(
-                self.chan,
-                &mut humidity,
-            ))?;
-        }
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_getHumidity(self.chan, &mut humidity)
+        })?;
         Ok(humidity)
     }
 
@@ -86,20 +85,20 @@ impl HumiditySensor {
         let ctx = Box::into_raw(cb) as *mut c_void;
         self.cb = Some(ctx);
 
-        unsafe {
-            crate::check_ret(ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
                 self.chan,
                 Some(Self::on_humidity_change),
                 ctx,
-            ))
-        }
+            )
+        })
     }
 
     /// Removes the humidity change callback.
     pub fn remove_on_humidity_change_handler(&mut self) -> Result<()> {
         // Remove the callback
         unsafe {
-            let ret = crate::check_ret(ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
+            let ret = ReturnCode::result(ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
                 self.chan,
                 None,
                 ptr::null_mut(),
