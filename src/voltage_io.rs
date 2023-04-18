@@ -12,14 +12,10 @@
 
 use crate::{Phidget, Result, ReturnCode};
 use phidget_sys::{
-    self as ffi, PhidgetVoltageInputHandle as VoltageInputHandle,
-    PhidgetVoltageOutputHandle as VoltageOutputHandle, PhidgetHandle,
+    self as ffi, PhidgetHandle, PhidgetVoltageInputHandle as VoltageInputHandle,
+    PhidgetVoltageOutputHandle as VoltageOutputHandle,
 };
-use std::{
-    mem,
-    os::raw::c_void,
-    ptr,
-};
+use std::{mem, os::raw::c_void, ptr};
 
 /// The function signature for the safe Rust voltage change callback.
 pub type VoltageChangeCallback = dyn Fn(&VoltageInput, f64) + Send + 'static;
@@ -46,7 +42,11 @@ impl VoltageInput {
 
     // Low-level, unsafe, callback for the voltage change event.
     // The context is a double-boxed pointer to the safe Rust callback.
-    unsafe extern "C" fn on_voltage_change(chan: VoltageInputHandle, ctx: *mut c_void, voltage: f64) {
+    unsafe extern "C" fn on_voltage_change(
+        chan: VoltageInputHandle,
+        ctx: *mut c_void,
+        voltage: f64,
+    ) {
         if !ctx.is_null() {
             let cb: &mut Box<VoltageChangeCallback> = &mut *(ctx as *mut _);
             let sensor = Self { chan, cb: None };
@@ -178,7 +178,6 @@ impl Drop for VoltageOutput {
     fn drop(&mut self) {
         unsafe {
             ffi::PhidgetVoltageOutput_delete(&mut self.chan);
-            //self.drop_callback();
         }
     }
 }

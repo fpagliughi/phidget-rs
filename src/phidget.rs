@@ -138,6 +138,22 @@ pub trait Phidget {
 
     // ----- Filters -----
 
+    /// Determines whether this channel is a VINT Hub port channel, or part
+    /// of a VINT device attached to a hub port.
+    fn is_hub_port_device(&mut self) -> Result<bool> {
+        let mut on: c_int = 0;
+        ReturnCode::result(unsafe { ffi::Phidget_getIsHubPortDevice(self.as_handle(), &mut on) })?;
+        Ok(on != 0)
+    }
+
+    /// Specify whether this channel should be opened on a VINT Hub port
+    /// directly, or on a VINT device attached to a hub port.
+    /// This must be set before the channel is opened.
+    fn set_is_hub_port_device(&mut self, on: bool) -> Result<()> {
+        let on = c_int::from(on);
+        ReturnCode::result(unsafe { ffi::Phidget_setIsHubPortDevice(self.as_handle(), on) })
+    }
+
     /// Gets the channel index of the device.
     fn channel(&mut self) -> Result<i32> {
         let mut ch: c_int = 0;

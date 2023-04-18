@@ -33,6 +33,9 @@ pub use crate::errors::*;
 pub mod phidget;
 pub use crate::phidget::Phidget;
 
+pub mod hub;
+pub use crate::hub::{Hub, HubPortMode};
+
 pub mod humidity_sensor;
 pub use crate::humidity_sensor::HumiditySensor;
 
