@@ -42,6 +42,9 @@ pub use crate::temperature_sensor::TemperatureSensor;
 pub mod digital_io;
 pub use crate::digital_io::{DigitalInput, DigitalOutput};
 
+pub mod voltage_io;
+pub use crate::voltage_io::{VoltageInput, VoltageOutput};
+
 /////////////////////////////////////////////////////////////////////////////
 
 /// Gets a string from a phidget22 call.
