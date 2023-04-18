@@ -118,7 +118,9 @@ pub trait Phidget {
     fn device_channel_count(&mut self, cls: ChannelClass) -> Result<u32> {
         let mut n: u32 = 0;
         let cls = cls as ffi::Phidget_ChannelClass;
-        ReturnCode::result(unsafe { ffi::Phidget_getDeviceChannelCount(self.as_handle(), cls, &mut n) })?;
+        ReturnCode::result(unsafe {
+            ffi::Phidget_getDeviceChannelCount(self.as_handle(), cls, &mut n)
+        })?;
         Ok(n)
     }
 
@@ -126,7 +128,7 @@ pub trait Phidget {
     fn device_class(&mut self) -> Result<DeviceClass> {
         let mut cls = ffi::Phidget_DeviceClass_PHIDCLASS_NOTHING;
         ReturnCode::result(unsafe { ffi::Phidget_getDeviceClass(self.as_handle(), &mut cls) })?;
-        Ok(DeviceClass::try_from(cls)?)
+        DeviceClass::try_from(cls)
     }
 
     /// Get the name of the device class
