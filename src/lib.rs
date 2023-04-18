@@ -44,9 +44,9 @@ pub use crate::temperature_sensor::TemperatureSensor;
 /// Gets a string from a phidget22 call.
 /// This can be any function that takes a pointer to a c-str as the lone
 /// argument.
-pub(crate) fn get_ffi_string<F>(f: F) -> Result<String>
+pub(crate) fn get_ffi_string<F>(mut f: F) -> Result<String>
 where
-    F: Fn(*mut *const c_char) -> c_uint,
+    F: FnMut(*mut *const c_char) -> c_uint,
 {
     unsafe {
         let mut ver: *const c_char = ptr::null_mut();

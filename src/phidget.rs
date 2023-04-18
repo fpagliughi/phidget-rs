@@ -6,7 +6,7 @@
 // to those terms.
 //
 
-use crate::{Result, ReturnCode};
+use crate::{ChannelClass, DeviceClass, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
 use std::{os::raw::c_int, time::Duration};
 
@@ -112,6 +112,26 @@ pub trait Phidget {
         let mut freq: f64 = 0.0;
         ReturnCode::result(unsafe { ffi::Phidget_getMaxDataRate(self.as_handle(), &mut freq) })?;
         Ok(freq)
+    }
+
+    /// Get the number of channels of the specified class on the device.
+    fn device_channel_count(&mut self, cls: ChannelClass) -> Result<u32> {
+        let mut n: u32 = 0;
+        let cls = cls as ffi::Phidget_ChannelClass;
+        ReturnCode::result(unsafe { ffi::Phidget_getDeviceChannelCount(self.as_handle(), cls, &mut n) })?;
+        Ok(n)
+    }
+
+    /// Gets class of the device
+    fn device_class(&mut self) -> Result<DeviceClass> {
+        let mut cls = ffi::Phidget_DeviceClass_PHIDCLASS_NOTHING;
+        ReturnCode::result(unsafe { ffi::Phidget_getDeviceClass(self.as_handle(), &mut cls) })?;
+        Ok(DeviceClass::try_from(cls)?)
+    }
+
+    /// Get the name of the device class
+    fn device_class_name(&mut self) -> Result<String> {
+        crate::get_ffi_string(|s| unsafe { ffi::Phidget_getDeviceClassName(self.as_handle(), s) })
     }
 
     // ----- Filters -----

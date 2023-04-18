@@ -9,11 +9,13 @@ fn main() -> anyhow::Result<()> {
 
     let mut hum_sensor = phidget::HumiditySensor::new();
     hum_sensor.open_wait(TIMEOUT)?;
+    println!("Humidity Class: {}", hum_sensor.device_class_name()?);
     let humidity = hum_sensor.humidity()?;
     println!("Humidity: {}", humidity);
 
     let mut temp_sensor = phidget::TemperatureSensor::new();
     temp_sensor.open_wait(TIMEOUT)?;
+    println!("Temperature Class: {}", temp_sensor.device_class_name()?);
     let temperature = temp_sensor.temperature()?;
     println!("Temperature: {}\n", temperature);
 
