@@ -61,11 +61,66 @@ pub trait Phidget {
         ReturnCode::result(unsafe { ffi::Phidget_setIsRemote(self.as_handle(), rem) })
     }
 
+    /// Gets the data interval for the device, if supported.
+    fn data_interval(&mut self) -> Result<Duration> {
+        let mut ms: u32 = 0;
+        ReturnCode::result(unsafe { ffi::Phidget_getDataInterval(self.as_handle(), &mut ms) })?;
+        Ok(Duration::from_millis(ms as u64))
+    }
+
+    /// Sets the data interval for the device, if supported.
+    fn set_data_interval(&mut self, interval: Duration) -> Result<()> {
+        let ms = interval.as_millis() as u32;
+        ReturnCode::result(unsafe { ffi::Phidget_setDataInterval(self.as_handle(), ms) })
+    }
+
+    /// Gets the minimum data interval for the device, if supported.
+    fn min_data_interval(&mut self) -> Result<Duration> {
+        let mut ms: u32 = 0;
+        ReturnCode::result(unsafe { ffi::Phidget_getMinDataInterval(self.as_handle(), &mut ms) })?;
+        Ok(Duration::from_millis(ms as u64))
+    }
+
+    /// Gets the maximum data interval for the device, if supported.
+    fn max_data_interval(&mut self) -> Result<Duration> {
+        let mut ms: u32 = 0;
+        ReturnCode::result(unsafe { ffi::Phidget_getMaxDataInterval(self.as_handle(), &mut ms) })?;
+        Ok(Duration::from_millis(ms as u64))
+    }
+
+    /// Gets the data update rate for the device, if supported.
+    fn data_rate(&mut self) -> Result<f64> {
+        let mut freq: f64 = 0.0;
+        ReturnCode::result(unsafe { ffi::Phidget_getDataRate(self.as_handle(), &mut freq) })?;
+        Ok(freq)
+    }
+
+    /// Sets the data update rate for the device, if supported.
+    fn set_data_rate(&mut self, freq: f64) -> Result<()> {
+        ReturnCode::result(unsafe { ffi::Phidget_setDataRate(self.as_handle(), freq) })
+    }
+
+    /// Gets the minimum data interval for the device, if supported.
+    fn min_data_rate(&mut self) -> Result<f64> {
+        let mut freq: f64 = 0.0;
+        ReturnCode::result(unsafe { ffi::Phidget_getMinDataRate(self.as_handle(), &mut freq) })?;
+        Ok(freq)
+    }
+
+    /// Gets the maximum data interval for the device, if supported.
+    fn max_data_rate(&mut self) -> Result<f64> {
+        let mut freq: f64 = 0.0;
+        ReturnCode::result(unsafe { ffi::Phidget_getMaxDataRate(self.as_handle(), &mut freq) })?;
+        Ok(freq)
+    }
+
     // ----- Filters -----
 
     /// Gets the channel index of the device.
     fn channel(&mut self) -> Result<i32> {
-        crate::get_ffi_int(|n| unsafe { ffi::Phidget_getChannel(self.as_handle(), n) })
+        let mut ch: c_int = 0;
+        ReturnCode::result(unsafe { ffi::Phidget_getChannel(self.as_handle(), &mut ch) })?;
+        Ok(ch as i32)
     }
 
     /// Sets the channel index to be opened.
