@@ -154,6 +154,20 @@ pub trait Phidget {
         ReturnCode::result(unsafe { ffi::Phidget_setIsHubPortDevice(self.as_handle(), on) })
     }
 
+    /// Gets the index of the port on the VINT Hub to which the channel is attached.
+    fn hub_port(&mut self) -> Result<i32> {
+        let mut port: c_int = 0;
+        ReturnCode::result(unsafe { ffi::Phidget_getHubPort(self.as_handle(), &mut port) })?;
+        Ok(port as i32)
+    }
+
+    /// Gets the index of the port on the VINT Hub to which the channel is attached.
+    /// Set to PHIDGET_HUBPORT_ANY to open the channel on any port of the hub.
+    /// This must be set before the channel is opened.
+    fn set_hub_port(&mut self, port: i32) -> Result<()> {
+        ReturnCode::result(unsafe { ffi::Phidget_setHubPort(self.as_handle(), port as c_int) })
+    }
+
     /// Gets the channel index of the device.
     fn channel(&mut self) -> Result<i32> {
         let mut ch: c_int = 0;
