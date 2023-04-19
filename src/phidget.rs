@@ -8,8 +8,32 @@
 
 use crate::{ChannelClass, DeviceClass, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
-use std::{os::raw::c_int, time::Duration};
+use std::{os::raw::{c_int, c_void}, time::Duration};
 
+pub type AttachCallback = dyn Fn(ffi::PhidgetHandle) + Send + 'static;
+pub type DetachCallback = dyn Fn(ffi::PhidgetHandle) + Send + 'static;
+
+// Low-level, unsafe callback for device attach events
+unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
+    if !ctx.is_null() {
+        let cb: &mut Box<AttachCallback> = &mut *(ctx as *mut _);
+        //let sensor = Self { chan, cb: None };
+        cb(phid);
+        //mem::forget(sensor);
+    }
+}
+
+// Low-level, unsafe callback for device detach events
+unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
+    if !ctx.is_null() {
+        let cb: &mut Box<DetachCallback> = &mut *(ctx as *mut _);
+        //let sensor = Self { chan, cb: None };
+        cb(phid);
+        //mem::forget(sensor);
+    }
+}
+
+/// The base trait and implementation for Phidgets
 pub trait Phidget {
     fn as_handle(&mut self) -> PhidgetHandle;
 
@@ -202,4 +226,47 @@ pub trait Phidget {
     fn set_serial_number(&mut self, sn: i32) -> Result<()> {
         ReturnCode::result(unsafe { ffi::Phidget_setDeviceSerialNumber(self.as_handle(), sn) })
     }
+
+    // ----- Callbacks -----
+
+    /// Assigns a handler that will be called when the Attach event occurs.
+    fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(ffi::PhidgetHandle) + Send + 'static,
+    {
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+        // TODO: Figure a way to save context
+        //self.cb = Some(ctx);
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnAttachHandler(
+                self.as_handle(),
+                Some(on_attach),
+                ctx,
+            )
+        })
+    }
+
+    /// Assigns a handler that will be called when the Detach event occurs.
+    fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(ffi::PhidgetHandle) + Send + 'static,
+    {
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+        // TODO: Figure a way to save context
+        //self.cb = Some(ctx);
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnDetachHandler(
+                self.as_handle(),
+                Some(on_detach),
+                ctx,
+            )
+        })
+    }
+
 }
