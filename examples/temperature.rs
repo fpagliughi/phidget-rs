@@ -48,41 +48,33 @@ fn main() -> anyhow::Result<()> {
             arg!(-p --port <port> "Use a specific port on a VINT hub directly")
                 .value_parser(value_parser!(i32)),
         )
-        .arg(arg!(-h --hub "Use a hub VINT input port directly"))
         .get_matches();
 
-    let use_hub = opts.get_flag("hub");
-
     println!("Opening Phidget temperature sensor...");
-    let mut temp = phidget::TemperatureSensor::new();
+    let mut sensor = phidget::TemperatureSensor::new();
 
-    // Whether we should use a hub port directly as the input,
-    // and if so, which one?
-    temp.set_is_hub_port_device(use_hub)?;
+    // Some device selection filters...
     if let Some(&port) = opts.get_one::<i32>("port") {
-        temp.set_hub_port(port)?;
+        sensor.set_hub_port(port)?;
     }
 
-    // Some other device selection filters...
     if let Some(&num) = opts.get_one::<i32>("serial") {
-        temp.set_serial_number(num)?;
+        sensor.set_serial_number(num)?;
     }
 
     if let Some(&chan) = opts.get_one::<i32>("channel") {
-        temp.set_channel(chan)?;
+        sensor.set_channel(chan)?;
     }
 
-    temp.open_wait(TIMEOUT)?;
+    sensor.open_wait(TIMEOUT)?;
 
-    if use_hub {
-        let port = temp.hub_port()?;
-        println!("Opened on hub port: {}", port);
-    }
+    let port = sensor.hub_port()?;
+    println!("Opened on hub port: {}", port);
 
-    let t = temp.temperature()?;
+    let t = sensor.temperature()?;
     println!("Temperature: {}", t);
 
-    temp.set_on_temperature_change_handler(|_, t: f64| {
+    sensor.set_on_temperature_change_handler(|_, t: f64| {
         println!("Temperature: {}", t);
     })?;
 

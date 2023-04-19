@@ -1,4 +1,4 @@
-// phidget-rs/examples/digital_in.rs
+// phidget-rs/examples/humidity.rs
 //
 // Copyright (c) 2023, Frank Pagliughi
 //
@@ -10,12 +10,14 @@
 // to those terms.
 //
 
-//! Rust Phidget example application to read digital input values.
+//! Rust Phidget example application to read humidity.
+//!
 
 use clap::{arg, value_parser, ArgAction};
 use phidget::Phidget;
 use std::{thread, time::Duration};
 
+// Open/connect timeout
 const TIMEOUT: Duration = Duration::from_millis(5000);
 
 // The package version is used as the app version
@@ -24,10 +26,10 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 // --------------------------------------------------------------------------
 
 fn main() -> anyhow::Result<()> {
-    let opts = clap::Command::new("digital_in")
+    let opts = clap::Command::new("humidity")
         .version(VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
-        .about("Phidget Digital Input Example")
+        .about("Phidget Humidity Monitoring Example")
         .disable_help_flag(true)
         .arg(
             arg!(--help "Print help information")
@@ -46,42 +48,34 @@ fn main() -> anyhow::Result<()> {
             arg!(-p --port <port> "Use a specific port on a VINT hub directly")
                 .value_parser(value_parser!(i32)),
         )
-        .arg(arg!(-h --hub "Use a hub VINT input port directly"))
         .get_matches();
 
-    let use_hub = opts.get_flag("hub");
+    println!("Opening Phidget humidity sensor...");
+    let mut sensor = phidget::HumiditySensor::new();
 
-    println!("Opening Phidget digital input device...");
-    let mut digin = phidget::DigitalInput::new();
-
-    // Whether we should use a hub port directly as the input,
-    // and if so, which one?
-    digin.set_is_hub_port_device(use_hub)?;
+    // Some device selection filters...
     if let Some(&port) = opts.get_one::<i32>("port") {
-        digin.set_hub_port(port)?;
+        sensor.set_hub_port(port)?;
     }
 
-    // Some other device selection filters...
     if let Some(&num) = opts.get_one::<i32>("serial") {
-        digin.set_serial_number(num)?;
+        sensor.set_serial_number(num)?;
     }
 
     if let Some(&chan) = opts.get_one::<i32>("channel") {
-        digin.set_channel(chan)?;
+        sensor.set_channel(chan)?;
     }
 
-    digin.open_wait(TIMEOUT)?;
+    sensor.open_wait(TIMEOUT)?;
 
-    if use_hub {
-        let port = digin.hub_port()?;
-        println!("Opened on hub port: {}", port);
-    }
+    let port = sensor.hub_port()?;
+    println!("Opened on hub port: {}", port);
 
-    let s = digin.state()?;
-    println!("Digital: {}", s);
+    let t = sensor.humidity()?;
+    println!("Humidity: {}", t);
 
-    digin.set_on_state_change_handler(|_, s: i32| {
-        println!("State: {}", s);
+    sensor.set_on_humidity_change_handler(|_, t: f64| {
+        println!("Humidity: {}", t);
     })?;
 
     // ^C handler wakes up the main thread
