@@ -41,7 +41,7 @@ unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
 }
 
 /// The base trait and implementation for Phidgets
-pub trait Phidget {
+pub trait Phidget : Send {
     /// Get the phidget handle for the device
     fn as_handle(&mut self) -> PhidgetHandle;
 
@@ -298,6 +298,8 @@ impl Phidget for GenericPhidget {
         self.phid
     }
 }
+
+unsafe impl Send for GenericPhidget {}
 
 impl From<PhidgetHandle> for GenericPhidget {
     fn from(phid: PhidgetHandle) -> Self {

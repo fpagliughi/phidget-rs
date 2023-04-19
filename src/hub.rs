@@ -88,6 +88,8 @@ impl Phidget for Hub {
     }
 }
 
+unsafe impl Send for Hub {}
+
 impl Default for Hub {
     fn default() -> Self {
         Self::new()

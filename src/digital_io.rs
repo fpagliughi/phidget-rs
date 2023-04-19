@@ -116,6 +116,8 @@ impl Phidget for DigitalInput {
     }
 }
 
+unsafe impl Send for DigitalInput {}
+
 impl Default for DigitalInput {
     fn default() -> Self {
         Self::new()
@@ -184,6 +186,8 @@ impl Phidget for DigitalOutput {
         self.chan as PhidgetHandle
     }
 }
+
+unsafe impl Send for DigitalOutput {}
 
 impl Default for DigitalOutput {
     fn default() -> Self {

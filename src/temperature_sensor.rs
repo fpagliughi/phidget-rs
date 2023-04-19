@@ -115,6 +115,8 @@ impl Phidget for TemperatureSensor {
     }
 }
 
+unsafe impl Send for TemperatureSensor {}
+
 impl Default for TemperatureSensor {
     fn default() -> Self {
         Self::new()

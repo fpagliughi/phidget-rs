@@ -117,6 +117,8 @@ impl Phidget for HumiditySensor {
     }
 }
 
+unsafe impl Send for HumiditySensor {}
+
 impl Default for HumiditySensor {
     fn default() -> Self {
         Self::new()

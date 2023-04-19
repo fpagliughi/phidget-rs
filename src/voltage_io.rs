@@ -116,6 +116,8 @@ impl Phidget for VoltageInput {
     }
 }
 
+unsafe impl Send for VoltageInput {}
+
 impl Default for VoltageInput {
     fn default() -> Self {
         Self::new()
@@ -167,6 +169,8 @@ impl Phidget for VoltageOutput {
         self.chan as PhidgetHandle
     }
 }
+
+unsafe impl Send for VoltageOutput {}
 
 impl Default for VoltageOutput {
     fn default() -> Self {
