@@ -37,15 +37,15 @@ fn main() -> anyhow::Result<()> {
                 .action(ArgAction::Help),
         )
         .arg(
-            arg!(-s --serial <serial_num> "Specify the serial number of the device to open")
+            arg!(-s --serial [serial_num] "Specify the serial number of the device to open")
                 .value_parser(value_parser!(i32)),
         )
         .arg(
-            arg!(-c --channel <chan> "Specify the channel number of the device to open")
+            arg!(-c --channel [chan] "Specify the channel number of the device to open")
                 .value_parser(value_parser!(i32)),
         )
         .arg(
-            arg!(-p --port <port> "Use a specific port on a VINT hub directly")
+            arg!(-p --port [port] "Use a specific port on a VINT hub directly")
                 .value_parser(value_parser!(i32)),
         )
         .get_matches();

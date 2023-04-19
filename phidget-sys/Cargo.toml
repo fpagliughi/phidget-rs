@@ -1,8 +1,8 @@
 [package]
 name = "phidget-sys"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
-rust-version = "1.63"
+rust-version = "1.59"
 authors = ["Frank Pagliughi <fpagliughi@mindspring.com>"]
 repository = "https://github.com/fpagliughi/phidget-rs/phidget-sys"
 license = "MIT"
@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["linux", "embedded", "analog", "iio"]
 categories = ["embedded", "hardware-support"]
 description = """
-Phidget library for Rust
+Low-level, unsafe, Rust wrapper for the phidget22 library.
 """
 
 [dependencies]
