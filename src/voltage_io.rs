@@ -60,7 +60,7 @@ impl VoltageInput {
     // be done if the callback is still running.
     unsafe fn drop_callback(&mut self) {
         if let Some(ctx) = self.cb.take() {
-            let _: Box<Box<VoltageChangeCallback>> = unsafe { Box::from_raw(ctx as *mut _) };
+            let _: Box<Box<VoltageChangeCallback>> = Box::from_raw(ctx as *mut _);
         }
     }
 
