@@ -18,7 +18,7 @@ use phidget::Phidget;
 use std::{thread, time::Duration};
 
 // Open/connect timeout
-const TIMEOUT: Duration = Duration::from_millis(5000);
+const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
 
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");

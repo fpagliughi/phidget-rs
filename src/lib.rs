@@ -20,6 +20,7 @@ use std::{
     ffi::CStr,
     os::raw::{c_char, c_uint},
     ptr,
+    time::Duration,
 };
 
 pub use phidget_sys::{
@@ -47,6 +48,12 @@ pub use crate::digital_io::{DigitalInput, DigitalOutput};
 
 pub mod voltage_io;
 pub use crate::voltage_io::{VoltageInput, VoltageOutput};
+
+/// An infinite timeout (wait forever)
+pub const TIMEOUT_INFINITE: Duration = Duration::from_millis(PHIDGET_TIMEOUT_INFINITE as u64);
+
+/// The default timeout for the library
+pub const TIMEOUT_DEFAULT: Duration = Duration::from_millis(PHIDGET_TIMEOUT_DEFAULT as u64);
 
 /////////////////////////////////////////////////////////////////////////////
 
