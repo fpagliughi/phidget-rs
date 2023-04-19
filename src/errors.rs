@@ -27,6 +27,7 @@ use std::{
 /// This type is a Rust std::error::Error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u32)]
+#[allow(missing_docs)]
 pub enum ReturnCode {
     Ok = 0,
     Perm = 1,

@@ -10,8 +10,11 @@ use crate::{ChannelClass, DeviceClass, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
 use std::{os::raw::{c_int, c_void}, time::Duration};
 
-pub type AttachCallback = dyn Fn(ffi::PhidgetHandle) + Send + 'static;
-pub type DetachCallback = dyn Fn(ffi::PhidgetHandle) + Send + 'static;
+/// The signature for device attach callbacks
+pub type AttachCallback = dyn Fn(PhidgetHandle) + Send + 'static;
+
+/// The signature for device detach callbacks
+pub type DetachCallback = dyn Fn(PhidgetHandle) + Send + 'static;
 
 // Low-level, unsafe callback for device attach events
 unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
@@ -35,6 +38,7 @@ unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
 
 /// The base trait and implementation for Phidgets
 pub trait Phidget {
+    /// Get the phidget handle for the device
     fn as_handle(&mut self) -> PhidgetHandle;
 
     /// Attempt to open the humidity sensor for input.
@@ -42,6 +46,8 @@ pub trait Phidget {
         ReturnCode::result(unsafe { ffi::Phidget_open(self.as_handle()) })
     }
 
+    /// Attempt to open the humidity sensor for input, waiting a limited time
+    /// for it to connect.
     fn open_wait(&mut self, to: Duration) -> Result<()> {
         let ms = to.as_millis() as u32;
         ReturnCode::result(unsafe { ffi::Phidget_openWaitForAttachment(self.as_handle(), ms) })
@@ -232,7 +238,7 @@ pub trait Phidget {
     /// Assigns a handler that will be called when the Attach event occurs.
     fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(ffi::PhidgetHandle) + Send + 'static,
+        F: Fn(PhidgetHandle) + Send + 'static,
     {
         // 1st box is fat ptr, 2nd is regular pointer.
         let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
@@ -252,7 +258,7 @@ pub trait Phidget {
     /// Assigns a handler that will be called when the Detach event occurs.
     fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(ffi::PhidgetHandle) + Send + 'static,
+        F: Fn(PhidgetHandle) + Send + 'static,
     {
         // 1st box is fat ptr, 2nd is regular pointer.
         let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));

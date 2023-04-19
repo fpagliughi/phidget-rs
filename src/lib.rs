@@ -16,6 +16,16 @@
 // Platform dependent whether necessary
 #![allow(clippy::unnecessary_cast)]
 
+// Lints
+#![deny(
+    missing_docs,
+    missing_copy_implementations,
+    trivial_casts,
+    unstable_features,
+    unused_import_braces,
+    unused_qualifications
+)]
+
 use std::{
     ffi::CStr,
     os::raw::{c_char, c_uint},
@@ -28,27 +38,35 @@ pub use phidget_sys::{
     PHIDGET_SERIALNUMBER_ANY, PHIDGET_TIMEOUT_DEFAULT, PHIDGET_TIMEOUT_INFINITE,
 };
 
+/// The error types for the crate
 pub mod errors;
 pub use crate::errors::*;
 
+/// The main Phidget trait
 pub mod phidget;
 pub use crate::phidget::Phidget;
 
+/// Network API
 pub mod net;
 pub use crate::net::ServerType;
 
+/// Phidget hub
 pub mod hub;
 pub use crate::hub::{Hub, HubPortMode};
 
+/// Phidget hmidity sensor
 pub mod humidity_sensor;
 pub use crate::humidity_sensor::HumiditySensor;
 
+/// Phidget temerature sensor
 pub mod temperature_sensor;
 pub use crate::temperature_sensor::TemperatureSensor;
 
+/// Phidget digital I/O
 pub mod digital_io;
 pub use crate::digital_io::{DigitalInput, DigitalOutput};
 
+/// Phidget voltage I/O
 pub mod voltage_io;
 pub use crate::voltage_io::{VoltageInput, VoltageOutput};
 
@@ -78,8 +96,10 @@ where
     }
 }
 
+/// Phidget channel class
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u32)]
+#[allow(missing_docs)]
 pub enum ChannelClass {
     Nothing = ffi::Phidget_ChannelClass_PHIDCHCLASS_NOTHING, // 0
     Accelerometer = ffi::Phidget_ChannelClass_PHIDCHCLASS_ACCELEROMETER, // 1
@@ -178,8 +198,10 @@ impl TryFrom<u32> for ChannelClass {
     }
 }
 
+/// Phidget device class
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u32)]
+#[allow(missing_docs)]
 pub enum DeviceClass {
     Nothing = ffi::Phidget_DeviceClass_PHIDCLASS_NOTHING, // 0
     Accelerometer = ffi::Phidget_DeviceClass_PHIDCLASS_ACCELEROMETER, // 1

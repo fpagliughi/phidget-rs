@@ -16,12 +16,13 @@ use crate::{Error, Result, ReturnCode};
 use phidget_sys as ffi;
 use std::{
     ffi::CString,
-    os::raw::{c_char, c_int},
+    os::raw::c_int,
 };
 
 /// Phidget server types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u32)]
+#[allow(missing_docs)]
 pub enum ServerType {
     None = ffi::PhidgetServerType_PHIDGETSERVER_NONE, // 0
     DeviceListener = ffi::PhidgetServerType_PHIDGETSERVER_DEVICELISTENER, // 1
@@ -67,7 +68,7 @@ pub fn add_server(
     let password = CString::new(password).unwrap();
     ReturnCode::result(unsafe {
         ffi::PhidgetNet_addServer(
-            server_name.as_ptr() as *const c_char,
+            server_name.as_ptr(),
             address.as_ptr(),
             port as c_int,
             password.as_ptr(),
