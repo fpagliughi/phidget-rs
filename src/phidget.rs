@@ -8,7 +8,10 @@
 
 use crate::{ChannelClass, DeviceClass, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
-use std::{os::raw::{c_int, c_void}, time::Duration};
+use std::{
+    os::raw::{c_int, c_void},
+    time::Duration,
+};
 
 /// The signature for device attach callbacks
 pub type AttachCallback = dyn Fn(PhidgetHandle) + Send + 'static;
@@ -247,11 +250,7 @@ pub trait Phidget {
         //self.cb = Some(ctx);
 
         ReturnCode::result(unsafe {
-            ffi::Phidget_setOnAttachHandler(
-                self.as_handle(),
-                Some(on_attach),
-                ctx,
-            )
+            ffi::Phidget_setOnAttachHandler(self.as_handle(), Some(on_attach), ctx)
         })
     }
 
@@ -267,12 +266,7 @@ pub trait Phidget {
         //self.cb = Some(ctx);
 
         ReturnCode::result(unsafe {
-            ffi::Phidget_setOnDetachHandler(
-                self.as_handle(),
-                Some(on_detach),
-                ctx,
-            )
+            ffi::Phidget_setOnDetachHandler(self.as_handle(), Some(on_detach), ctx)
         })
     }
-
 }

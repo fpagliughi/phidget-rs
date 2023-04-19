@@ -14,10 +14,7 @@
 
 use crate::{Error, Result, ReturnCode};
 use phidget_sys as ffi;
-use std::{
-    ffi::CString,
-    os::raw::c_int,
-};
+use std::{ffi::CString, os::raw::c_int};
 
 /// Phidget server types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

@@ -15,7 +15,6 @@
 
 // Platform dependent whether necessary
 #![allow(clippy::unnecessary_cast)]
-
 // Lints
 #![deny(
     missing_docs,
