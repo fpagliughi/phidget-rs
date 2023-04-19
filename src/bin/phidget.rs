@@ -8,10 +8,10 @@ fn main() -> anyhow::Result<()> {
     println!("{}", phidget::library_version_number()?);
 
     let mut hum_sensor = phidget::HumiditySensor::new();
-    hum_sensor.set_on_attach_handler(|_| {
+    phidget::phidget::set_on_attach_handler(&mut hum_sensor, |_| {
         println!("Humidity sensor attached");
     })?;
-    hum_sensor.set_on_detach_handler(|_| {
+    phidget::phidget::set_on_detach_handler(&mut hum_sensor, |_| {
         println!("Humidity sensor detached");
     })?;
     hum_sensor.open_wait(TIMEOUT)?;
@@ -20,10 +20,10 @@ fn main() -> anyhow::Result<()> {
     println!("Humidity: {}", humidity);
 
     let mut temp_sensor = phidget::TemperatureSensor::new();
-    temp_sensor.set_on_attach_handler(|_| {
+    phidget::phidget::set_on_attach_handler(&mut temp_sensor, |_| {
         println!("Temperature sensor attached");
     })?;
-    temp_sensor.set_on_detach_handler(|_| {
+    phidget::phidget::set_on_detach_handler(&mut temp_sensor, |_| {
         println!("Temperature sensor detached");
     })?;
     temp_sensor.open_wait(TIMEOUT)?;

@@ -9,7 +9,6 @@
 use crate::{ChannelClass, DeviceClass, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
 use std::{
-    mem,
     os::raw::{c_int, c_void},
     time::Duration,
 };
@@ -24,9 +23,8 @@ pub type DetachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
 unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
     if !ctx.is_null() {
         let cb: &mut Box<AttachCallback> = &mut *(ctx as *mut _);
-        let ph = GenericPhidget { phid };
+        let ph = GenericPhidget::from(phid);
         cb(&ph);
-        mem::forget(ph);
     }
 }
 
@@ -34,11 +32,48 @@ unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
 unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
     if !ctx.is_null() {
         let cb: &mut Box<DetachCallback> = &mut *(ctx as *mut _);
-        let ph = GenericPhidget { phid };
+        let ph = GenericPhidget::from(phid);
         cb(&ph);
-        mem::forget(ph);
     }
 }
+
+
+// ----- Callbacks -----
+
+/// Assigns a handler that will be called when the Attach event occurs.
+//fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+pub fn set_on_attach_handler<P, F>(ph: &mut P, cb: F) -> Result<*mut c_void>
+where
+    P: Phidget,
+    F: Fn(&GenericPhidget) + Send + 'static,
+{
+    // 1st box is fat ptr, 2nd is regular pointer.
+    let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
+    let ctx = Box::into_raw(cb) as *mut c_void;
+
+    ReturnCode::result(unsafe {
+        ffi::Phidget_setOnAttachHandler(ph.as_handle(), Some(on_attach), ctx)
+    })?;
+    Ok(ctx)
+}
+
+/// Assigns a handler that will be called when the Detach event occurs.
+pub fn set_on_detach_handler<P, F>(ph: &mut P, cb: F) -> Result<*mut c_void>
+where
+    P: Phidget,
+    F: Fn(&GenericPhidget) + Send + 'static,
+{
+    // 1st box is fat ptr, 2nd is regular pointer.
+    let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));
+    let ctx = Box::into_raw(cb) as *mut c_void;
+
+    ReturnCode::result(unsafe {
+        ffi::Phidget_setOnDetachHandler(ph.as_handle(), Some(on_detach), ctx)
+    })?;
+    Ok(ctx)
+}
+
+/////////////////////////////////////////////////////////////////////////////
 
 /// The base trait and implementation for Phidgets
 pub trait Phidget : Send {
@@ -55,6 +90,12 @@ pub trait Phidget : Send {
     fn open_wait(&mut self, to: Duration) -> Result<()> {
         let ms = to.as_millis() as u32;
         ReturnCode::result(unsafe { ffi::Phidget_openWaitForAttachment(self.as_handle(), ms) })
+    }
+
+    /// Attempt to open the humidity sensor for input, waiting the default time
+    /// for it to connect.
+    fn open_wait_default(&mut self) -> Result<()> {
+        self.open_wait(crate::TIMEOUT_DEFAULT)
     }
 
     /// Closes the channel
@@ -236,42 +277,6 @@ pub trait Phidget : Send {
     fn set_serial_number(&mut self, sn: i32) -> Result<()> {
         ReturnCode::result(unsafe { ffi::Phidget_setDeviceSerialNumber(self.as_handle(), sn) })
     }
-
-    // ----- Callbacks -----
-
-    /// Assigns a handler that will be called when the Attach event occurs.
-    fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
-    where
-        F: Fn(&GenericPhidget) + Send + 'static,
-    {
-        // 1st box is fat ptr, 2nd is regular pointer.
-        let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
-        let ctx = Box::into_raw(cb) as *mut c_void;
-
-        // TODO: Figure a way to save context
-        //self.cb = Some(ctx);
-
-        ReturnCode::result(unsafe {
-            ffi::Phidget_setOnAttachHandler(self.as_handle(), Some(on_attach), ctx)
-        })
-    }
-
-    /// Assigns a handler that will be called when the Detach event occurs.
-    fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
-    where
-        F: Fn(&GenericPhidget) + Send + 'static,
-    {
-        // 1st box is fat ptr, 2nd is regular pointer.
-        let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));
-        let ctx = Box::into_raw(cb) as *mut c_void;
-
-        // TODO: Figure a way to save context
-        //self.cb = Some(ctx);
-
-        ReturnCode::result(unsafe {
-            ffi::Phidget_setOnDetachHandler(self.as_handle(), Some(on_detach), ctx)
-        })
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -281,6 +286,10 @@ pub trait Phidget : Send {
 /// This contains a wrapper around a generic PhidgetHandle, which might be
 /// any type of device. It can be queried for additional information and
 /// potentially converted into a specific device object.
+///
+/// This is a non-owning object. It will not release the underlying Phidget
+/// when dropped. It is typically used to wrap a generic handle sent to a
+/// callback from the phidget22 library.
 pub struct GenericPhidget {
     phid: PhidgetHandle,
 }
