@@ -9,6 +9,8 @@
 // This file may not be copied, modified, or distributed except according
 // to those terms.
 //
+//! Phidget Humidity sensor
+//!
 
 use crate::{Phidget, Result, ReturnCode};
 use phidget_sys::{

@@ -34,6 +34,9 @@ pub use crate::errors::*;
 pub mod phidget;
 pub use crate::phidget::Phidget;
 
+pub mod net;
+pub use crate::net::ServerType;
+
 pub mod hub;
 pub use crate::hub::{Hub, HubPortMode};
 
