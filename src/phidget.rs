@@ -314,6 +314,7 @@ pub trait Phidget: Send {
 /// This is a non-owning object. It will not release the underlying Phidget
 /// when dropped. It is typically used to wrap a generic handle sent to a
 /// callback from the phidget22 library.
+#[allow(missing_copy_implementations)]
 pub struct GenericPhidget {
     phid: PhidgetHandle,
 }

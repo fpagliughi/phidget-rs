@@ -10,10 +10,10 @@
 // to those terms.
 //
 
-use crate::{Error, Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, Error, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetHubHandle as HubHandle};
 use std::{
-    os::raw::{c_int, c_uint},
+    os::raw::{c_int, c_uint, c_void},
     ptr,
 };
 
@@ -55,6 +55,10 @@ impl TryFrom<u32> for HubPortMode {
 pub struct Hub {
     // Handle to the hub in the phidget22 library
     chan: HubHandle,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
 }
 
 impl Hub {
@@ -64,7 +68,7 @@ impl Hub {
         unsafe {
             ffi::PhidgetHub_create(&mut chan);
         }
-        Self { chan }
+        Self::from(chan)
     }
 
     /// Get the mode of the specified hub port
@@ -79,6 +83,26 @@ impl Hub {
     pub fn set_port_mode(&self, port: i32, mode: HubPortMode) -> Result<()> {
         let port = port as c_int;
         ReturnCode::result(unsafe { ffi::PhidgetHub_setPortMode(self.chan, port, mode as c_uint) })
+    }
+
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
+        Ok(())
+    }
+
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
     }
 }
 
@@ -96,10 +120,25 @@ impl Default for Hub {
     }
 }
 
+impl From<HubHandle> for Hub {
+    fn from(chan: HubHandle) -> Self {
+        Self {
+            chan,
+            attach_cb: None,
+            detach_cb: None,
+        }
+    }
+}
+
 impl Drop for Hub {
     fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
         unsafe {
             ffi::PhidgetHub_delete(&mut self.chan);
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
     }
 }
