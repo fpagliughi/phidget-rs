@@ -12,7 +12,7 @@
 //! Phidget Humidity sensor
 //!
 
-use crate::{Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetHumiditySensorHandle as HumiditySensorHandle,
 };
@@ -27,6 +27,10 @@ pub struct HumiditySensor {
     chan: HumiditySensorHandle,
     // Double-boxed HumidityCallback, if registered
     cb: Option<*mut c_void>,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
 }
 
 impl HumiditySensor {
@@ -36,7 +40,7 @@ impl HumiditySensor {
         unsafe {
             ffi::PhidgetHumiditySensor_create(&mut chan);
         }
-        Self { chan, cb: None }
+        Self::from(chan)
     }
 
     // Low-level, unsafe, callback for humidity change events.
@@ -48,18 +52,9 @@ impl HumiditySensor {
     ) {
         if !ctx.is_null() {
             let cb: &mut Box<HumidityCallback> = &mut *(ctx as *mut _);
-            let sensor = Self { chan, cb: None };
+            let sensor = Self::from(chan);
             cb(&sensor, humidity);
             mem::forget(sensor);
-        }
-    }
-
-    // Drop/delete the humidity change callback.
-    // This deletes the heap memory used by the callback lambda. It must not
-    // be done if the callback is still running.
-    unsafe fn drop_callback(&mut self) {
-        if let Some(ctx) = self.cb.take() {
-            let _: Box<Box<HumidityCallback>> = Box::from_raw(ctx as *mut _);
         }
     }
 
@@ -96,18 +91,24 @@ impl HumiditySensor {
         })
     }
 
-    /// Removes the humidity change callback.
-    pub fn remove_on_humidity_change_handler(&mut self) -> Result<()> {
-        // Remove the callback
-        unsafe {
-            let ret = ReturnCode::result(ffi::PhidgetHumiditySensor_setOnHumidityChangeHandler(
-                self.chan,
-                None,
-                ptr::null_mut(),
-            ));
-            self.drop_callback();
-            ret
-        }
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
+        Ok(())
+    }
+
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
     }
 }
 
@@ -125,11 +126,27 @@ impl Default for HumiditySensor {
     }
 }
 
+impl From<HumiditySensorHandle> for HumiditySensor {
+    fn from(chan: HumiditySensorHandle) -> Self {
+        Self {
+            chan,
+            cb: None,
+            attach_cb: None,
+            detach_cb: None,
+        }
+    }
+}
+
 impl Drop for HumiditySensor {
     fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
         unsafe {
             ffi::PhidgetHumiditySensor_delete(&mut self.chan);
-            self.drop_callback();
+            crate::drop_cb::<HumidityCallback>(self.cb.take());
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
     }
 }

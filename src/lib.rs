@@ -27,7 +27,7 @@
 
 use std::{
     ffi::CStr,
-    os::raw::{c_char, c_uint},
+    os::raw::{c_char, c_uint, c_void},
     ptr,
     time::Duration,
 };
@@ -43,7 +43,7 @@ pub use crate::errors::*;
 
 /// The main Phidget trait
 pub mod phidget;
-pub use crate::phidget::Phidget;
+pub use crate::phidget::{AttachCallback, DetachCallback, GenericPhidget, Phidget};
 
 /// Network API
 pub mod net;
@@ -92,6 +92,13 @@ where
         }
         let s = CStr::from_ptr(ver);
         Ok(s.to_string_lossy().into())
+    }
+}
+
+/// Release the memory held in a double-boxed callback function/lambda.
+pub(crate) fn drop_cb<P: ?Sized>(cb: Option<*mut c_void>) {
+    if let Some(ctx) = cb {
+        let _: Box<Box<P>> = unsafe { Box::from_raw(ctx as *mut _) };
     }
 }
 

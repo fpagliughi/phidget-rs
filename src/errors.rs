@@ -99,8 +99,10 @@ impl fmt::Display for ReturnCode {
         else {
             let mut descr: *const c_char = ptr::null_mut();
             unsafe {
-                // TODO: Check for null and conversion error
-                if ffi::Phidget_getErrorDescription(*self as c_uint, &mut descr) == 0 {
+                if ffi::Phidget_getErrorDescription(*self as c_uint, &mut descr) == 0
+                    && !descr.is_null()
+                {
+                    // TODO: Handle conversion error?
                     let msg = CStr::from_ptr(descr).to_string_lossy();
                     write!(f, "{}", msg)
                 }

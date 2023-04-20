@@ -10,7 +10,7 @@
 // to those terms.
 //
 
-use crate::{Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetTemperatureSensorHandle as TemperatureSensorHandle,
 };
@@ -25,6 +25,10 @@ pub struct TemperatureSensor {
     chan: TemperatureSensorHandle,
     // Double-boxed TemperatureCallback, if registered
     cb: Option<*mut c_void>,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
 }
 
 impl TemperatureSensor {
@@ -34,7 +38,7 @@ impl TemperatureSensor {
         unsafe {
             ffi::PhidgetTemperatureSensor_create(&mut chan);
         }
-        Self { chan, cb: None }
+        Self::from(chan)
     }
 
     // Low-level, unsafe, callback for temperature change events.
@@ -46,18 +50,9 @@ impl TemperatureSensor {
     ) {
         if !ctx.is_null() {
             let cb: &mut Box<TemperatureCallback> = &mut *(ctx as *mut _);
-            let sensor = Self { chan, cb: None };
+            let sensor = Self::from(chan);
             cb(&sensor, temperature);
             mem::forget(sensor);
-        }
-    }
-
-    // Drop/delete the temperature change callback.
-    // This deletes the heap memory used by the callback lambda. It must not
-    // be done if the callback is still running.
-    unsafe fn drop_callback(&mut self) {
-        if let Some(ctx) = self.cb.take() {
-            let _: Box<Box<TemperatureCallback>> = Box::from_raw(ctx as *mut _);
         }
     }
 
@@ -94,18 +89,24 @@ impl TemperatureSensor {
         })
     }
 
-    /// Removes the temperature change callback
-    pub fn remove_on_temperature_change_handler(&mut self) -> Result<()> {
-        unsafe {
-            let ret =
-                ReturnCode::result(ffi::PhidgetTemperatureSensor_setOnTemperatureChangeHandler(
-                    self.chan,
-                    None,
-                    ptr::null_mut(),
-                ));
-            self.drop_callback();
-            ret
-        }
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
+        Ok(())
+    }
+
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
     }
 }
 
@@ -123,11 +124,27 @@ impl Default for TemperatureSensor {
     }
 }
 
+impl From<TemperatureSensorHandle> for TemperatureSensor {
+    fn from(chan: TemperatureSensorHandle) -> Self {
+        Self {
+            chan,
+            cb: None,
+            attach_cb: None,
+            detach_cb: None,
+        }
+    }
+}
+
 impl Drop for TemperatureSensor {
     fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
         unsafe {
             ffi::PhidgetTemperatureSensor_delete(&mut self.chan);
-            self.drop_callback();
+            crate::drop_cb::<TemperatureCallback>(self.cb.take());
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
     }
 }

@@ -10,7 +10,7 @@
 // to those terms.
 //
 
-use crate::{Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetVoltageInputHandle as VoltageInputHandle,
     PhidgetVoltageOutputHandle as VoltageOutputHandle,
@@ -28,6 +28,10 @@ pub struct VoltageInput {
     chan: VoltageInputHandle,
     // Double-boxed VoltageChangeCallback, if registered
     cb: Option<*mut c_void>,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
 }
 
 impl VoltageInput {
@@ -37,7 +41,7 @@ impl VoltageInput {
         unsafe {
             ffi::PhidgetVoltageInput_create(&mut chan);
         }
-        Self { chan, cb: None }
+        Self::from(chan)
     }
 
     // Low-level, unsafe, callback for the voltage change event.
@@ -49,18 +53,9 @@ impl VoltageInput {
     ) {
         if !ctx.is_null() {
             let cb: &mut Box<VoltageChangeCallback> = &mut *(ctx as *mut _);
-            let sensor = Self { chan, cb: None };
+            let sensor = Self::from(chan);
             cb(&sensor, voltage);
             mem::forget(sensor);
-        }
-    }
-
-    // Drop/delete the voltage change callback.
-    // This deletes the heap memory used by the callback lambda. It must not
-    // be done if the callback is still running.
-    unsafe fn drop_callback(&mut self) {
-        if let Some(ctx) = self.cb.take() {
-            let _: Box<Box<VoltageChangeCallback>> = Box::from_raw(ctx as *mut _);
         }
     }
 
@@ -95,18 +90,24 @@ impl VoltageInput {
         })
     }
 
-    /// Removes the voltage change callback.
-    pub fn remove_on_voltage_change_handler(&mut self) -> Result<()> {
-        // Remove the callback
-        unsafe {
-            let ret = ReturnCode::result(ffi::PhidgetVoltageInput_setOnVoltageChangeHandler(
-                self.chan,
-                None,
-                ptr::null_mut(),
-            ));
-            self.drop_callback();
-            ret
-        }
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
+        Ok(())
+    }
+
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
     }
 }
 
@@ -124,11 +125,27 @@ impl Default for VoltageInput {
     }
 }
 
+impl From<VoltageInputHandle> for VoltageInput {
+    fn from(chan: VoltageInputHandle) -> Self {
+        Self {
+            chan,
+            cb: None,
+            attach_cb: None,
+            detach_cb: None,
+        }
+    }
+}
+
 impl Drop for VoltageInput {
     fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
         unsafe {
             ffi::PhidgetVoltageInput_delete(&mut self.chan);
-            self.drop_callback();
+            crate::drop_cb::<VoltageChangeCallback>(self.cb.take());
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
     }
 }
@@ -139,6 +156,10 @@ impl Drop for VoltageInput {
 pub struct VoltageOutput {
     // Handle to the voltage output in the phidget22 library
     chan: VoltageOutputHandle,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
 }
 
 impl VoltageOutput {
@@ -148,7 +169,7 @@ impl VoltageOutput {
         unsafe {
             ffi::PhidgetVoltageOutput_create(&mut chan);
         }
-        Self { chan }
+        Self::from(chan)
     }
 
     /// Get the voltage value that the channel will output
@@ -161,6 +182,26 @@ impl VoltageOutput {
     /// Set the voltage value that the channel will output.
     pub fn set_voltage(&self, v: f64) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetVoltageOutput_setVoltage(self.chan, v) })
+    }
+
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
+        Ok(())
+    }
+
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
     }
 }
 
@@ -178,10 +219,25 @@ impl Default for VoltageOutput {
     }
 }
 
+impl From<VoltageOutputHandle> for VoltageOutput {
+    fn from(chan: VoltageOutputHandle) -> Self {
+        Self {
+            chan,
+            attach_cb: None,
+            detach_cb: None,
+        }
+    }
+}
+
 impl Drop for VoltageOutput {
     fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
         unsafe {
             ffi::PhidgetVoltageOutput_delete(&mut self.chan);
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
     }
 }

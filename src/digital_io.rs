@@ -10,7 +10,7 @@
 // to those terms.
 //
 
-use crate::{Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetDigitalInputHandle as DigitalInputHandle,
     PhidgetDigitalOutputHandle as DigitalOutputHandle, PhidgetHandle,
@@ -32,6 +32,10 @@ pub struct DigitalInput {
     chan: DigitalInputHandle,
     // Double-boxed DigitalInputCallback, if registered
     cb: Option<*mut c_void>,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
 }
 
 impl DigitalInput {
@@ -41,7 +45,7 @@ impl DigitalInput {
         unsafe {
             ffi::PhidgetDigitalInput_create(&mut chan);
         }
-        Self { chan, cb: None }
+        Self::from(chan)
     }
 
     // Low-level, unsafe, callback for the digital input state change event.
@@ -49,18 +53,9 @@ impl DigitalInput {
     unsafe extern "C" fn on_state_change(chan: DigitalInputHandle, ctx: *mut c_void, state: c_int) {
         if !ctx.is_null() {
             let cb: &mut Box<DigitalInputCallback> = &mut *(ctx as *mut _);
-            let sensor = Self { chan, cb: None };
+            let sensor = Self::from(chan);
             cb(&sensor, state as i32);
             mem::forget(sensor);
-        }
-    }
-
-    // Drop/delete the digital input state change callback.
-    // This deletes the heap memory used by the callback lambda. It must not
-    // be done if the callback is still running.
-    unsafe fn drop_callback(&mut self) {
-        if let Some(ctx) = self.cb.take() {
-            let _: Box<Box<DigitalInputCallback>> = Box::from_raw(ctx as *mut _);
         }
     }
 
@@ -95,18 +90,24 @@ impl DigitalInput {
         })
     }
 
-    /// Removes the digital input state change callback.
-    pub fn remove_on_state_change_handler(&mut self) -> Result<()> {
-        // Remove the callback
-        unsafe {
-            let ret = ReturnCode::result(ffi::PhidgetDigitalInput_setOnStateChangeHandler(
-                self.chan,
-                None,
-                ptr::null_mut(),
-            ));
-            self.drop_callback();
-            ret
-        }
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
+        Ok(())
+    }
+
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
     }
 }
 
@@ -124,11 +125,27 @@ impl Default for DigitalInput {
     }
 }
 
+impl From<DigitalInputHandle> for DigitalInput {
+    fn from(chan: DigitalInputHandle) -> Self {
+        Self {
+            chan,
+            cb: None,
+            attach_cb: None,
+            detach_cb: None,
+        }
+    }
+}
+
 impl Drop for DigitalInput {
     fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
         unsafe {
             ffi::PhidgetDigitalInput_delete(&mut self.chan);
-            self.drop_callback();
+            crate::drop_cb::<DigitalInputCallback>(self.cb.take());
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
     }
 }
@@ -139,6 +156,10 @@ impl Drop for DigitalInput {
 pub struct DigitalOutput {
     // Handle to the digital output in the phidget22 library
     chan: DigitalOutputHandle,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
 }
 
 impl DigitalOutput {
@@ -148,7 +169,7 @@ impl DigitalOutput {
         unsafe {
             ffi::PhidgetDigitalOutput_create(&mut chan);
         }
-        Self { chan }
+        Self::from(chan)
     }
 
     /// Get the state of the digital output channel
@@ -179,6 +200,26 @@ impl DigitalOutput {
     pub fn set_duty_cycle(&self, dc: f64) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setDutyCycle(self.chan, dc) })
     }
+
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
+        Ok(())
+    }
+
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
+    }
 }
 
 impl Phidget for DigitalOutput {
@@ -195,11 +236,25 @@ impl Default for DigitalOutput {
     }
 }
 
+impl From<DigitalOutputHandle> for DigitalOutput {
+    fn from(chan: DigitalOutputHandle) -> Self {
+        Self {
+            chan,
+            attach_cb: None,
+            detach_cb: None,
+        }
+    }
+}
+
 impl Drop for DigitalOutput {
     fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
         unsafe {
             ffi::PhidgetDigitalOutput_delete(&mut self.chan);
-            //self.drop_callback();
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
     }
 }

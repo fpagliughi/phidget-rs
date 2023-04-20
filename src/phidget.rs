@@ -37,11 +37,10 @@ unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
     }
 }
 
-
 // ----- Callbacks -----
 
-/// Assigns a handler that will be called when the Attach event occurs.
-//fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+/// Assigns a handler that will be called when the Attach event occurs for
+/// a matching phidget.
 pub fn set_on_attach_handler<P, F>(ph: &mut P, cb: F) -> Result<*mut c_void>
 where
     P: Phidget,
@@ -57,7 +56,8 @@ where
     Ok(ctx)
 }
 
-/// Assigns a handler that will be called when the Detach event occurs.
+/// Assigns a handler that will be called when the Detach event occurs for
+/// a matching Phidget.
 pub fn set_on_detach_handler<P, F>(ph: &mut P, cb: F) -> Result<*mut c_void>
 where
     P: Phidget,
@@ -76,7 +76,7 @@ where
 /////////////////////////////////////////////////////////////////////////////
 
 /// The base trait and implementation for Phidgets
-pub trait Phidget : Send {
+pub trait Phidget: Send {
     /// Get the phidget handle for the device
     fn as_handle(&mut self) -> PhidgetHandle;
 
@@ -108,6 +108,13 @@ pub trait Phidget : Send {
         let mut open: c_int = 0;
         ReturnCode::result(unsafe { ffi::Phidget_getIsOpen(self.as_handle(), &mut open) })?;
         Ok(open != 0)
+    }
+
+    /// Determines if the channel is open and attached to a device.
+    fn is_attached(&mut self) -> Result<bool> {
+        let mut attached: c_int = 0;
+        ReturnCode::result(unsafe { ffi::Phidget_getAttached(self.as_handle(), &mut attached) })?;
+        Ok(attached != 0)
     }
 
     /// Determines if the channel is open locally (not over a network).
@@ -197,6 +204,23 @@ pub trait Phidget : Send {
             ffi::Phidget_getDeviceChannelCount(self.as_handle(), cls, &mut n)
         })?;
         Ok(n)
+    }
+
+    /// Gets class of the channel
+    fn channel_class(&mut self) -> Result<ChannelClass> {
+        let mut cls = ffi::Phidget_ChannelClass_PHIDCHCLASS_NOTHING;
+        ReturnCode::result(unsafe { ffi::Phidget_getChannelClass(self.as_handle(), &mut cls) })?;
+        ChannelClass::try_from(cls)
+    }
+
+    /// Get the name of the channel class
+    fn channel_class_name(&mut self) -> Result<String> {
+        crate::get_ffi_string(|s| unsafe { ffi::Phidget_getChannelClassName(self.as_handle(), s) })
+    }
+
+    /// Get the channel's name.
+    fn channel_name(&mut self) -> Result<String> {
+        crate::get_ffi_string(|s| unsafe { ffi::Phidget_getChannelName(self.as_handle(), s) })
     }
 
     /// Gets class of the device
@@ -315,4 +339,3 @@ impl From<PhidgetHandle> for GenericPhidget {
         Self::new(phid)
     }
 }
-

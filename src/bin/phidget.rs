@@ -15,7 +15,18 @@ fn main() -> anyhow::Result<()> {
         println!("Humidity sensor detached");
     })?;
     hum_sensor.open_wait(TIMEOUT)?;
-    println!("Humidity Class: {}", hum_sensor.device_class_name()?);
+    println!(
+        "Humidity Device Class: [{:?}, {}] {}",
+        hum_sensor.device_class()?,
+        hum_sensor.device_class()? as u32,
+        hum_sensor.device_class_name()?
+    );
+    println!(
+        "Humidity Channel Class: [{:?}, {}] {}",
+        hum_sensor.channel_class()?,
+        hum_sensor.channel_class()? as u32,
+        hum_sensor.channel_class_name()?
+    );
     let humidity = hum_sensor.humidity()?;
     println!("Humidity: {}", humidity);
 
@@ -27,7 +38,18 @@ fn main() -> anyhow::Result<()> {
         println!("Temperature sensor detached");
     })?;
     temp_sensor.open_wait(TIMEOUT)?;
-    println!("Temperature Class: {}", temp_sensor.device_class_name()?);
+    println!(
+        "Temperature Device Class: [{:?}, {}] {}",
+        temp_sensor.device_class()?,
+        temp_sensor.device_class()? as u32,
+        temp_sensor.device_class_name()?
+    );
+    println!(
+        "Temperature Channel Class: [{:?}, {}] {}",
+        temp_sensor.channel_class()?,
+        temp_sensor.channel_class()? as u32,
+        temp_sensor.channel_class_name()?
+    );
     let temperature = temp_sensor.temperature()?;
     println!("Temperature: {}\n", temperature);
 
