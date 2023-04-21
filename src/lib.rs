@@ -12,6 +12,15 @@
 
 //! Safe Rust bindings to the phidget22 library.
 //!
+//! ## Crate Features
+//!
+//! ### Default
+//!
+//! * **utils** -
+//!   Whether to build command-line utilities. This brings in additional
+//!   dependencies like [anyhow](https://docs.rs/anyhow/latest/anyhow/) and
+//!   [clap](https://docs.rs/clap/latest/clap/)
+//!
 
 // Platform dependent whether necessary
 #![allow(clippy::unnecessary_cast)]
