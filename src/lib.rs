@@ -57,6 +57,10 @@ pub use crate::hub::{Hub, HubPortMode};
 pub mod humidity_sensor;
 pub use crate::humidity_sensor::HumiditySensor;
 
+/// Phidget stepper
+pub mod stepper;
+pub use crate::stepper::Stepper;
+
 /// Phidget temerature sensor
 pub mod temperature_sensor;
 pub use crate::temperature_sensor::TemperatureSensor;

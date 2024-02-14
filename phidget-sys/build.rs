@@ -25,12 +25,13 @@ fn config_macos() {
 fn main() {
     // TODO: We should eventually find or regenerate the
     //      bindings file for the specific target.
-    let tgt = env::var("TARGET").unwrap();
-    println!("debug: Building for target: '{}'", tgt);
+    let phidget_libs = env::var("PHIDGET_ROOT").unwrap();
+    println!("debug: Building for target: '{}'", phidget_libs);
 
     #[cfg(target_os = "macos")]
     config_macos();
 
     #[cfg(not(target_os = "macos"))]
     println!("cargo:rustc-link-lib=phidget22");
+    println!("cargo:rustc-link-search={}", phidget_libs);
 }

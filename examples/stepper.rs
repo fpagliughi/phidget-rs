@@ -13,10 +13,9 @@
 //! Rust Phidget example application to read temperature.
 //!
 
-use clap::{arg, value_parser, ArgAction};
 use phidget::Phidget;
 use std::{thread, time::Duration};
-
+use phidget::HubPortMode::DigitalInput;
 // The open/connect timeout
 const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
 
@@ -27,7 +26,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() -> anyhow::Result<()> {
     println!("Opening Phidget temperature sensor...");
-    let mut sensor = phidget::TemperatureSensor::new();
+    let mut sensor = phidget::St
 
     // Some device selection filters...
     if let Some(&port) = opts.get_one::<i32>("port") {
