@@ -49,26 +49,6 @@ pub use crate::phidget::{AttachCallback, DetachCallback, GenericPhidget, Phidget
 pub mod net;
 pub use crate::net::ServerType;
 
-/// Phidget hub
-pub mod hub;
-pub use crate::hub::{Hub, HubPortMode};
-
-/// Phidget hmidity sensor
-pub mod humidity_sensor;
-pub use crate::humidity_sensor::HumiditySensor;
-
-/// Phidget temerature sensor
-pub mod temperature_sensor;
-pub use crate::temperature_sensor::TemperatureSensor;
-
-/// Phidget digital I/O
-pub mod digital_io;
-pub use crate::digital_io::{DigitalInput, DigitalOutput};
-
-/// Phidget voltage I/O
-pub mod voltage_io;
-pub use crate::voltage_io::{VoltageInput, VoltageOutput};
-
 /// An infinite timeout (wait forever)
 pub const TIMEOUT_INFINITE: Duration = Duration::from_millis(PHIDGET_TIMEOUT_INFINITE as u64);
 
@@ -76,7 +56,8 @@ pub const TIMEOUT_INFINITE: Duration = Duration::from_millis(PHIDGET_TIMEOUT_INF
 pub const TIMEOUT_DEFAULT: Duration = Duration::from_millis(PHIDGET_TIMEOUT_DEFAULT as u64);
 
 /////////////////////////////////////////////////////////////////////////////
-
+/// Module containing all implemented devices
+pub mod devices;
 /// Gets a string from a phidget22 call.
 /// This can be any function that takes a pointer to a c-str as the lone
 /// argument.
@@ -276,7 +257,7 @@ impl TryFrom<u32> for DeviceClass {
 /////////////////////////////////////////////////////////////////////////////
 
 /// The the full version of the phidget22 library as a string.
-/// This is somthing like, "Phidget22 - Version 1.14 - Built Mar 31 2023 22:44:59"
+/// This is something like, "Phidget22 - Version 1.14 - Built Mar 31 2023 22:44:59"
 pub fn library_version() -> Result<String> {
     get_ffi_string(|s| unsafe { ffi::Phidget_getLibraryVersion(s) })
 }

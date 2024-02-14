@@ -1,4 +1,4 @@
-// phidget-rs/examples/digital_in.rs
+// phidget-rs/examples/temperature.rs
 //
 // Copyright (c) 2023, Frank Pagliughi
 //
@@ -10,11 +10,11 @@
 // to those terms.
 //
 
-//! Rust Phidget example application to read digital input values.
- 
+//! Rust Phidget example application to read temperature.
+//!
+
 use phidget::Phidget;
 use std::{thread, time::Duration};
-
 // The open/connect timeout
 const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
 
@@ -26,34 +26,27 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 fn main() -> anyhow::Result<()> {
     println!("Phidgets-rs {VERSION}");
 
-    let use_hub = true;
-
     let port = 0; // Use a specific port on a VINT hub directly
     let serial = 0; // Specify the serial number of the device to open
     let channel = 0; // Specify the channel number of the device to open
 
-    println!("Opening Phidget digital input device...");
-    let mut digin = phidget::devices::DigitalInput::new();
+    println!("Opening Phidget stepper...");
+    let mut stepper = phidget::devices::Stepper::new();
 
-    // Whether we should use a hub port directly as the input,
-    // and if so, which one?
-    digin.set_is_hub_port_device(use_hub)?;
-    digin.set_hub_port(port)?;
-    digin.set_serial_number(serial)?;
-    digin.set_channel(channel)?;
+    stepper.set_hub_port(port)?;
+    stepper.set_serial_number(serial)?;
+    stepper.set_channel(channel)?;
 
-    digin.open_wait(TIMEOUT)?;
+    stepper.open_wait(TIMEOUT)?;
 
-    if use_hub {
-        let port = digin.hub_port()?;
-        println!("Opened on hub port: {}", port);
-    }
+    let port = stepper.hub_port()?;
+    println!("Opened on hub port: {}", port);
 
-    let s = digin.get_state()?;
-    println!("Digital: {}", s);
+    let position = stepper.get_position()?;
+    println!("Stepper position: {}", position);
 
-    digin.set_on_state_change_handler(|_, s: i32| {
-        println!("State: {}", s);
+    stepper.set_on_position_change_handler(|_, position: f64| {
+        println!("Stepper position: {}", position);
     })?;
 
     // ^C handler wakes up the main thread

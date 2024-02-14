@@ -1,0 +1,29 @@
+
+
+/// Phidget hub
+pub mod hub;
+pub use crate::devices::hub::{Hub, HubPortMode};
+
+/// Phidget hmidity sensor
+pub mod humidity_sensor;
+pub use crate::devices::humidity_sensor::HumiditySensor;
+
+/// Phidget stepper
+pub mod stepper;
+pub use crate::devices::stepper::Stepper;
+
+/// Phidget temerature sensor
+pub mod temperature_sensor;
+pub use crate::devices::temperature_sensor::TemperatureSensor;
+
+/// Phidget digital input
+pub mod digital_output;
+pub use crate::devices::digital_input::DigitalInput;
+
+/// Phidget digital ouput
+pub mod digital_input;
+pub use crate::devices::digital_output::DigitalOutput;
+
+/// Phidget voltage I/O
+pub mod voltage_io;
+pub use crate::devices::voltage_io::{VoltageInput, VoltageOutput};
