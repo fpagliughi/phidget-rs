@@ -48,6 +48,8 @@ pub use crate::phidget::{AttachCallback, DetachCallback, GenericPhidget, Phidget
 /// Network API
 pub mod net;
 pub use crate::net::ServerType;
+/// Module containing all implemented devices
+pub mod devices;
 
 /// An infinite timeout (wait forever)
 pub const TIMEOUT_INFINITE: Duration = Duration::from_millis(PHIDGET_TIMEOUT_INFINITE as u64);
@@ -56,8 +58,6 @@ pub const TIMEOUT_INFINITE: Duration = Duration::from_millis(PHIDGET_TIMEOUT_INF
 pub const TIMEOUT_DEFAULT: Duration = Duration::from_millis(PHIDGET_TIMEOUT_DEFAULT as u64);
 
 /////////////////////////////////////////////////////////////////////////////
-/// Module containing all implemented devices
-pub mod devices;
 /// Gets a string from a phidget22 call.
 /// This can be any function that takes a pointer to a c-str as the lone
 /// argument.
