@@ -24,6 +24,10 @@ pub use crate::devices::digital_input::DigitalInput;
 pub mod digital_input;
 pub use crate::devices::digital_output::DigitalOutput;
 
-/// Phidget voltage I/O
-pub mod voltage_io;
-pub use crate::devices::voltage_io::{VoltageInput, VoltageOutput};
+/// Phidget voltage input
+pub mod voltage_input;
+pub use crate::devices::voltage_input::VoltageInput;
+
+/// Phidget voltage ouput
+pub mod voltage_output;
+pub use crate::devices::voltage_output::VoltageOutput;

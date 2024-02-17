@@ -1,10 +1,10 @@
 // phidget-rs/src/stepper.rs
 //
 // Copyright (c) 2023, Frank Pagliughi
+// implemented by willmendil 2024.
 //
 // This file is part of the 'phidget-rs' library.
 //
-// implemented by Guanicoe 2024.
 //
 // Licensed under the MIT license:
 //   <LICENSE or http://opensource.org/licenses/MIT>
