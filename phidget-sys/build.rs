@@ -25,6 +25,7 @@ fn config_macos() {
 fn main() {
     // TODO: We should eventually find or regenerate the
     //      bindings file for the specific target.
+    // PHIDGET_ROOT should be set to point to the installation directory of phidgets (e.g. C:\Program Files\Phidgets\Phidget22)
     let phidget_libs = env::var("PHIDGET_ROOT").unwrap();
     println!("debug: Building for target: '{}'", phidget_libs);
 

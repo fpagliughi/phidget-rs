@@ -3,10 +3,13 @@
 
 ## [v0.1.2]  - unreleased
 
-- Added stepper implementation. Still missing async wrapper
-- Seperated digital-io to digital-input and ouput. Completion of available functions from binding.
+- Added stepper implementation. Still missing async wrapper.
+- Seperated voltage-io to voltage-input and ouput. (Allows better implementation of available functions from binding)
+- Seperated digital-io to digital-input and ouput. (Allows better implementation of available functions from binding)
+- Completion of available functions from in digital-input and ouput binding.
 - Removed clap as it is not necessary to have it to use the code and it adds bloat for the examples which should be the minimum code required to use the crate.
-- Moved devices to specific modul to keep the root directory clean
+- Moved devices to specific modul to keep the root directory clean.
+- Renamed build.rs env variable to the directory of phidgets22, as well as adding a search to allow rust to find what it needs.
 
 ## [v0.1.1](https://github.com/fpagliughi/phidget-rs/compare/v0.1.0..v0.1.1)  - 2023-04-20
 
