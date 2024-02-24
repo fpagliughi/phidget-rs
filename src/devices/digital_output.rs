@@ -194,12 +194,12 @@ impl DigitalOutput {
     /// Set the state of the digital output
     /// This overrides any duty cycle that was previously set.
     pub fn set_state(&self, state: bool) -> Result<()> {
-        let _v = match state {
+        let v = match state {
             true => 1,
             false => 0,
         };
 
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, _v) })
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, v) })
     }
 
     /// Set state async
@@ -210,10 +210,10 @@ impl DigitalOutput {
 
     /// Get the state of the digital output channel
     pub fn get_state(&self) -> Result<bool> {
-        let mut _v = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_getState(self.chan, &mut _v) })?;
+        let mut v = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_getState(self.chan, &mut v) })?;
 
-        match _v {
+        match v {
             1 => Ok(true),
             0 => Ok(false),
             _ => Err(ReturnCode::UnknownVal),

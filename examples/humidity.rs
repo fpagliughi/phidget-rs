@@ -14,7 +14,7 @@
 //!
 
 use clap::{arg, value_parser, ArgAction};
-use phidget::Phidget;
+use phidget::{devices::HumiditySensor, Phidget};
 use std::{thread, time::Duration};
 
 // Open/connect timeout
@@ -51,7 +51,7 @@ fn main() -> anyhow::Result<()> {
         .get_matches();
 
     println!("Opening Phidget humidity sensor...");
-    let mut sensor = phidget::HumiditySensor::new();
+    let mut sensor = HumiditySensor::new();
 
     // Some device selection filters...
     if let Some(&port) = opts.get_one::<i32>("port") {

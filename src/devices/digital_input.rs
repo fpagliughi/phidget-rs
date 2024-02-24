@@ -67,21 +67,21 @@ impl DigitalInput {
 
     /// Set input mode
     pub fn set_input_mode(&self, input_mode: InputMode) -> Result<()> {
-        let _v = match input_mode {
+        let v = match input_mode {
             InputMode::NPN => 1,
             InputMode::PNP => 0,
         };
 
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setInputMode(self.chan, _v) })?;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setInputMode(self.chan, v) })?;
         Ok(())
     }
 
     /// Get input mode
     pub fn get_input_mode(&self) -> Result<InputMode> {
-        let mut _im: ffi::Phidget_InputMode = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getInputMode(self.chan, &mut _im) })?;
+        let mut im: ffi::Phidget_InputMode = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getInputMode(self.chan, &mut im) })?;
 
-        match _im {
+        match im {
             1 => Ok(InputMode::NPN),
             0 => Ok(InputMode::PNP),
             _ => Err(ReturnCode::UnknownVal),
@@ -90,24 +90,24 @@ impl DigitalInput {
 
     /// Set power supply
     pub fn set_power_supply(&self, power_supply: PowerSupply) -> Result<()> {
-        let _v = match power_supply {
+        let v: u32 = match power_supply {
             PowerSupply::OFF => 1,
             PowerSupply::V12 => 2,
             PowerSupply::V24 => 3,
         };
 
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setPowerSupply(self.chan, _v) })?;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setPowerSupply(self.chan, v) })?;
         Ok(())
     }
 
     /// Get power supply
     pub fn get_power_supply(&self) -> Result<PowerSupply> {
-        let mut _ps: ffi::Phidget_PowerSupply = 0;
+        let mut ps: ffi::Phidget_PowerSupply = 0;
         ReturnCode::result(unsafe {
-            ffi::PhidgetDigitalInput_getPowerSupply(self.chan, &mut _ps)
+            ffi::PhidgetDigitalInput_getPowerSupply(self.chan, &mut ps)
         })?;
 
-        match _ps {
+        match ps {
             1 => Ok(PowerSupply::OFF),
             2 => Ok(PowerSupply::V12),
             3 => Ok(PowerSupply::V24),
@@ -117,10 +117,10 @@ impl DigitalInput {
 
     /// Get the state of the digital input channel
     pub fn get_state(&self) -> Result<bool> {
-        let mut _v = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getState(self.chan, &mut _v) })?;
+        let mut v = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getState(self.chan, &mut v) })?;
 
-        match _v {
+        match v {
             1 => Ok(true),
             0 => Ok(false),
             _ => Err(ReturnCode::UnknownVal),
