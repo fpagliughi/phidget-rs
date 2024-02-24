@@ -14,10 +14,11 @@
 #![allow(improper_ctypes)]
 
 // Bring in the bindings for phidget22
+#[cfg(all(windows, target_pointer_width = "64"))]
+include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings/phidget22-64.rs"));
+
 #[cfg(all(unix, target_pointer_width = "64"))]
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings/phidget22-64.rs"));
 
 #[cfg(all(unix, target_pointer_width = "32"))]
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings/phidget22-32.rs"));
-
-
