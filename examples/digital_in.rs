@@ -13,7 +13,7 @@
 //! Rust Phidget example application to read digital input values.
 
 use clap::{arg, value_parser, ArgAction};
-use phidget::Phidget;
+use phidget::{devices::DigitalInput, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
@@ -53,7 +53,7 @@ fn main() -> anyhow::Result<()> {
     let use_hub = opts.get_flag("hub");
 
     println!("Opening Phidget digital input device...");
-    let mut digin = phidget::DigitalInput::new();
+    let mut digin = DigitalInput::new();
 
     // Whether we should use a hub port directly as the input,
     // and if so, which one?
@@ -78,7 +78,7 @@ fn main() -> anyhow::Result<()> {
         println!("Opened on hub port: {}", port);
     }
 
-    let s = digin.state()?;
+    let s = digin.get_state()?;
     println!("Digital: {}", s);
 
     digin.set_on_state_change_handler(|_, s: i32| {

@@ -3,12 +3,12 @@ name = "phidget"
 version = "0.1.2"
 edition = "2021"
 rust-version = "1.63"
-authors = ["Frank Pagliughi <fpagliughi@mindspring.com>"]
+authors = ["Frank Pagliughi <fpagliughi@mindspring.com>", "wlwatkins <wlwatkins@pm.me>"]
 repository = "https://github.com/fpagliughi/phidget-rs"
 license = "MIT"
 readme = "README.md"
 keywords = ["embedded"]
-categories = ["embedded", "hardware-support"]
+categories = ["embedded", "hardware-support", "science::robotics"]
 description = """
 Phidget library for Rust.
 """

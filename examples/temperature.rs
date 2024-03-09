@@ -14,7 +14,7 @@
 //!
 
 use clap::{arg, value_parser, ArgAction};
-use phidget::Phidget;
+use phidget::{devices::TemperatureSensor, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
@@ -51,7 +51,7 @@ fn main() -> anyhow::Result<()> {
         .get_matches();
 
     println!("Opening Phidget temperature sensor...");
-    let mut sensor = phidget::TemperatureSensor::new();
+    let mut sensor = TemperatureSensor::new();
 
     // Some device selection filters...
     if let Some(&port) = opts.get_one::<i32>("port") {

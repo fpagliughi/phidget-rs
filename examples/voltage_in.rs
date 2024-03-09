@@ -33,7 +33,7 @@
 //! ```
 
 use clap::{arg, value_parser, ArgAction};
-use phidget::Phidget;
+use phidget::{devices::VoltageInput, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
     let use_hub = opts.get_flag("hub");
 
     println!("Opening Phidget voltage input device...");
-    let mut vin = phidget::VoltageInput::new();
+    let mut vin = VoltageInput::new();
 
     // Whether we should use a hub port directly as the input,
     // and if so, which one?
