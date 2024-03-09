@@ -35,16 +35,18 @@ pub struct DigitalInput {
     detach_cb: Option<*mut c_void>,
 }
 
-/// InputMode for digital input http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/phidget22_8h.html#a5ad0740978daad6539d3a8249607bd46
+/// InputMode for digital input
+/// <http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/phidget22_8h.html#a5ad0740978daad6539d3a8249607bd46>
 #[derive(Copy, Clone)]
 pub enum InputMode {
-    /// NPN: cannot find docs
+    /// For using sensors with NPN transistor outputs.
     NPN,
-    /// PNP: cannot find docs
+    /// For using sensors with PNP transistor outputs.
     PNP,
 }
 
-/// PowerSupply for digital input http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/phidget22_8h.html#a0293d3a21e8de247c4b562ceda897876
+/// PowerSupply for digital input
+/// <http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/phidget22_8h.html#a0293d3a21e8de247c4b562ceda897876>
 #[derive(Copy, Clone)]
 pub enum PowerSupply {
     /// OFF: cannot find docs
@@ -77,7 +79,7 @@ impl DigitalInput {
     }
 
     /// Get input mode
-    pub fn get_input_mode(&self) -> Result<InputMode> {
+    pub fn input_mode(&self) -> Result<InputMode> {
         let mut im: ffi::Phidget_InputMode = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getInputMode(self.chan, &mut im) })?;
 
@@ -101,11 +103,9 @@ impl DigitalInput {
     }
 
     /// Get power supply
-    pub fn get_power_supply(&self) -> Result<PowerSupply> {
+    pub fn power_supply(&self) -> Result<PowerSupply> {
         let mut ps: ffi::Phidget_PowerSupply = 0;
-        ReturnCode::result(unsafe {
-            ffi::PhidgetDigitalInput_getPowerSupply(self.chan, &mut ps)
-        })?;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getPowerSupply(self.chan, &mut ps) })?;
 
         match ps {
             1 => Ok(PowerSupply::OFF),
@@ -116,7 +116,7 @@ impl DigitalInput {
     }
 
     /// Get the state of the digital input channel
-    pub fn get_state(&self) -> Result<bool> {
+    pub fn state(&self) -> Result<bool> {
         let mut v = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getState(self.chan, &mut v) })?;
 

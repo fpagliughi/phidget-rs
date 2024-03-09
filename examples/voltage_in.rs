@@ -71,12 +71,12 @@ fn main() -> anyhow::Result<()> {
         .arg(
             arg!(-o --offset [offset] "The offset for reading  [val = gain * (volts - offset)]")
                 .default_value("0.0")
-                .value_parser(value_parser!(f64))
+                .value_parser(value_parser!(f64)),
         )
         .arg(
             arg!(-g --gain [gain] "The gain for the reading [val = gain * (volts - offset)]")
                 .default_value("1.0")
-                .value_parser(value_parser!(f64))
+                .value_parser(value_parser!(f64)),
         )
         .get_matches();
 

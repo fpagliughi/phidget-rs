@@ -1,4 +1,7 @@
-use phidget::{devices::{HumiditySensor, TemperatureSensor}, Phidget};
+use phidget::{
+    devices::{HumiditySensor, TemperatureSensor},
+    Phidget,
+};
 
 use std::{thread, time::Duration};
 
@@ -58,11 +61,9 @@ fn main() -> anyhow::Result<()> {
         println!("Humidity: {}", humidity);
     })?;
 
-    temp_sensor.set_on_temperature_change_handler(
-        |_s: &TemperatureSensor, temperature: f64| {
-            println!("Temerature: {}", temperature);
-        },
-    )?;
+    temp_sensor.set_on_temperature_change_handler(|_s: &TemperatureSensor, temperature: f64| {
+        println!("Temerature: {}", temperature);
+    })?;
 
     // ^C handler wakes up the main thread
     ctrlc::set_handler({

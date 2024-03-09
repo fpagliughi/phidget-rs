@@ -78,7 +78,7 @@ fn main() -> anyhow::Result<()> {
         println!("Opened on hub port: {}", port);
     }
 
-    let s = digin.get_state()?;
+    let s = digin.state()?;
     println!("Digital: {}", s);
 
     digin.set_on_state_change_handler(|_, s: i32| {

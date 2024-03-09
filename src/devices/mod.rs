@@ -1,5 +1,3 @@
-
-
 /// Phidget hub
 pub mod hub;
 pub use crate::devices::hub::{Hub, HubPortMode};

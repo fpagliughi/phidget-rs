@@ -62,7 +62,7 @@ impl DigitalOutput {
         unimplemented!();
     }
     /// Get duty cycle
-    pub fn get_duty_cycle(&self) -> Result<f64> {
+    pub fn duty_cycle(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getDutyCycle(self.chan, &mut value)
@@ -71,7 +71,7 @@ impl DigitalOutput {
     }
 
     /// Get minimum duty cycle
-    pub fn get_min_duty_cycle(&self) -> Result<f64> {
+    pub fn min_duty_cycle(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMinDutyCycle(self.chan, &mut value)
@@ -80,7 +80,7 @@ impl DigitalOutput {
     }
 
     /// Get maximum duty cycle
-    pub fn get_max_duty_cycle(&self) -> Result<f64> {
+    pub fn max_duty_cycle(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMaxDutyCycle(self.chan, &mut value)
@@ -89,7 +89,7 @@ impl DigitalOutput {
     }
 
     /// Get minimum failsafe time
-    pub fn get_min_failsafe_time(&self) -> Result<u32> {
+    pub fn min_failsafe_time(&self) -> Result<u32> {
         let mut value = 0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMinFailsafeTime(self.chan, &mut value)
@@ -98,7 +98,7 @@ impl DigitalOutput {
     }
 
     /// Get maximum failsafe time
-    pub fn get_max_failsafe_time(&self) -> Result<u32> {
+    pub fn max_failsafe_time(&self) -> Result<u32> {
         let mut value = 0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMaxFailsafeTime(self.chan, &mut value)
@@ -115,7 +115,7 @@ impl DigitalOutput {
     }
 
     /// Get frequency
-    pub fn get_frequency(&self) -> Result<f64> {
+    pub fn frequency(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getFrequency(self.chan, &mut value)
@@ -124,7 +124,7 @@ impl DigitalOutput {
     }
 
     /// Get minimum frequency
-    pub fn get_min_frequency(&self) -> Result<f64> {
+    pub fn min_frequency(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMinFrequency(self.chan, &mut value)
@@ -133,7 +133,7 @@ impl DigitalOutput {
     }
 
     /// Get maximum frequency
-    pub fn get_max_frequency(&self) -> Result<f64> {
+    pub fn max_frequency(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMaxFrequency(self.chan, &mut value)
@@ -156,7 +156,7 @@ impl DigitalOutput {
     }
 
     /// Get led current limit
-    pub fn get_led_current_limit(&self) -> Result<f64> {
+    pub fn led_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getLEDCurrentLimit(self.chan, &mut value)
@@ -165,7 +165,7 @@ impl DigitalOutput {
     }
 
     /// Get minimum led current limit
-    pub fn get_min_led_current_limit(&self) -> Result<f64> {
+    pub fn min_led_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMinLEDCurrentLimit(self.chan, &mut value)
@@ -174,7 +174,7 @@ impl DigitalOutput {
     }
 
     /// Get maximum led current limit
-    pub fn get_max_led_current_limit(&self) -> Result<f64> {
+    pub fn max_led_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getMaxLEDCurrentLimit(self.chan, &mut value)
@@ -183,7 +183,7 @@ impl DigitalOutput {
     }
 
     /// Get led forward voltage
-    pub fn get_led_forward_voltage(&self) -> Result<u32> {
+    pub fn led_forward_voltage(&self) -> Result<u32> {
         let mut value: ffi::PhidgetDigitalOutput_LEDForwardVoltage = 0;
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_getLEDForwardVoltage(self.chan, &mut value)
@@ -209,7 +209,7 @@ impl DigitalOutput {
     }
 
     /// Get the state of the digital output channel
-    pub fn get_state(&self) -> Result<bool> {
+    pub fn state(&self) -> Result<bool> {
         let mut v = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_getState(self.chan, &mut v) })?;
 
