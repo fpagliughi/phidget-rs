@@ -2,8 +2,11 @@
 name = "phidget"
 version = "0.1.2"
 edition = "2021"
-rust-version = "1.63"
-authors = ["Frank Pagliughi <fpagliughi@mindspring.com>", "wlwatkins <wlwatkins@pm.me>"]
+rust-version = "1.73"
+authors = [
+    "Frank Pagliughi <fpagliughi@mindspring.com>", 
+    "wlwatkins <wlwatkins@pm.me>"
+]
 repository = "https://github.com/fpagliughi/phidget-rs"
 license = "MIT"
 readme = "README.md"
