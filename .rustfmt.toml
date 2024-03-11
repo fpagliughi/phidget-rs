@@ -1,6 +1,6 @@
 # .rustfmt.toml
 #
-# Code format definitions for Eclipse Paho MQTT Rust library.
+# Code format definitions.
 #
 
 edition = "2021"
