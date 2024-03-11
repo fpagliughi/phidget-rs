@@ -6,9 +6,9 @@ pub use crate::devices::hub::{Hub, HubPortMode};
 pub mod humidity_sensor;
 pub use crate::devices::humidity_sensor::HumiditySensor;
 
-// /// Phidget stepper
-// pub mod stepper;
-// pub use crate::devices::stepper::Stepper;
+/// Phidget stepper
+pub mod stepper;
+pub use crate::devices::stepper::Stepper;
 
 /// Phidget temerature sensor
 pub mod temperature_sensor;
