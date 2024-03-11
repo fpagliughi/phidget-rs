@@ -1,16 +1,19 @@
 [package]
 name = "phidget"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
-rust-version = "1.63"
-authors = ["Frank Pagliughi <fpagliughi@mindspring.com>", "Will <wlwatkins@pm.me>"]
+rust-version = "1.73"
+authors = [
+    "Frank Pagliughi <fpagliughi@mindspring.com>", 
+    "wlwatkins <wlwatkins@pm.me>"
+]
 repository = "https://github.com/fpagliughi/phidget-rs"
 license = "MIT"
 readme = "README.md"
-keywords = ["linux", "embedded", "analog", "iio", "windows"]
+keywords = ["embedded"]
 categories = ["embedded", "hardware-support", "science::robotics"]
 description = """
-Phidget library for Rust
+Phidget library for Rust.
 """
 
 [features]

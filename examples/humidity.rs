@@ -13,7 +13,8 @@
 //! Rust Phidget example application to read humidity.
 //!
 
-use phidget::Phidget;
+use clap::{arg, value_parser, ArgAction};
+use phidget::{devices::HumiditySensor, Phidget};
 use std::{thread, time::Duration};
 
 // Open/connect timeout
@@ -32,7 +33,7 @@ fn main() -> anyhow::Result<()> {
     let channel = 0; // Specify the channel number of the device to open
 
     println!("Opening Phidget humidity sensor...");
-    let mut sensor = phidget::devices::HumiditySensor::new();
+    let mut sensor = HumiditySensor::new();
 
     sensor.set_hub_port(port)?;
     sensor.set_serial_number(serial)?;

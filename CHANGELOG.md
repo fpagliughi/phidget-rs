@@ -1,15 +1,23 @@
 # Change Log for phidget-rs library crate
 
+## v0.1.4 - Unreleased
 
-## [v0.1.2]  - unreleased
+- Added 32-bit bindings in -sys crate.
 
-- Added stepper implementation. Still missing async wrapper.
-- Seperated voltage-io to voltage-input and ouput. (Allows better implementation of available functions from binding)
-- Seperated digital-io to digital-input and ouput. (Allows better implementation of available functions from binding)
+## [v0.1.3](https://github.com/fpagliughi/phidget-rs/compare/v0.1.2..v0.1.3)  - 2024-03-10
+
+- Exporting devices (`DigitalInput`, `DigitalOutput`, etc) at the crate root to fix accidental breaking change in v0.1.x
+
+
+## [v0.1.2](https://github.com/fpagliughi/phidget-rs/compare/v0.1.1..v0.1.2)  - 2024-03-10
+
+- Bumped MSRV to 1.73
+- Seperated voltage-io to voltage-input and ouput modules.
+- Seperated digital-io to digital-input and ouput modules.
 - Completion of available functions from in digital-input and ouput binding.
-- Removed clap as it is not necessary to have it to use the code and it adds bloat for the examples which should be the minimum code required to use the crate.
-- Moved devices to specific modul to keep the root directory clean.
-- Renamed build.rs env variable to the directory of phidgets22, as well as adding a search to allow rust to find what it needs.
+- Moved devices to specific module to keep the root directory clean.
+- Added support for optional `PHIDGET_ROOT` to point to the directory of the phidgets22 library.
+
 
 ## [v0.1.1](https://github.com/fpagliughi/phidget-rs/compare/v0.1.0..v0.1.1)  - 2023-04-20
 
@@ -18,6 +26,7 @@
 - Phidgets implement `Send` trait
 - Added a `GenericPhidget` type
 - Downgraded clap to v3.2 (from 4.x) to allow for lower/older MRSV (now Rust v0.59.0)
+
 
 ## [v0.1.0](https://github.com/fpagliughi/phidget-rs/tree/v0.1.0) - 2023-04-19
 

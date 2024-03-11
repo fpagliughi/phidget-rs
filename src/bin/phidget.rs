@@ -1,4 +1,8 @@
-use phidget::Phidget;
+use phidget::{
+    devices::{HumiditySensor, TemperatureSensor},
+    Phidget,
+};
+
 use std::{thread, time::Duration};
 
 const TIMEOUT: Duration = Duration::from_millis(5000);
@@ -7,7 +11,7 @@ fn main() -> anyhow::Result<()> {
     println!("{}", phidget::library_version()?);
     println!("{}", phidget::library_version_number()?);
 
-    let mut hum_sensor = phidget::devices::HumiditySensor::new();
+    let mut hum_sensor = HumiditySensor::new();
     phidget::phidget::set_on_attach_handler(&mut hum_sensor, |_| {
         println!("Humidity sensor attached");
     })?;
@@ -30,7 +34,7 @@ fn main() -> anyhow::Result<()> {
     let humidity = hum_sensor.humidity()?;
     println!("Humidity: {}", humidity);
 
-    let mut temp_sensor = phidget::devices::TemperatureSensor::new();
+    let mut temp_sensor = TemperatureSensor::new();
     phidget::phidget::set_on_attach_handler(&mut temp_sensor, |_| {
         println!("Temperature sensor attached");
     })?;
@@ -53,15 +57,13 @@ fn main() -> anyhow::Result<()> {
     let temperature = temp_sensor.temperature()?;
     println!("Temperature: {}\n", temperature);
 
-    hum_sensor.set_on_humidity_change_handler(|_s: &phidget::devices::HumiditySensor, humidity: f64| {
+    hum_sensor.set_on_humidity_change_handler(|_s: &HumiditySensor, humidity: f64| {
         println!("Humidity: {}", humidity);
     })?;
 
-    temp_sensor.set_on_temperature_change_handler(
-        |_s: &phidget::devices::TemperatureSensor, temperature: f64| {
-            println!("Temerature: {}", temperature);
-        },
-    )?;
+    temp_sensor.set_on_temperature_change_handler(|_s: &TemperatureSensor, temperature: f64| {
+        println!("Temerature: {}", temperature);
+    })?;
 
     // ^C handler wakes up the main thread
     ctrlc::set_handler({

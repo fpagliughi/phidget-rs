@@ -13,7 +13,8 @@
 //! Rust Phidget example application to read temperature.
 //!
 
-use phidget::Phidget;
+use clap::{arg, value_parser, ArgAction};
+use phidget::{devices::TemperatureSensor, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
@@ -30,7 +31,7 @@ fn main() -> anyhow::Result<()> {
     let serial = 0; // Specify the serial number of the device to open
     let channel = 0; // Specify the channel number of the device to open
     println!("Opening Phidget temperature sensor...");
-    let mut sensor = phidget::devices::TemperatureSensor::new();
+    let mut sensor = TemperatureSensor::new();
 
     sensor.set_hub_port(port)?;
     sensor.set_serial_number(serial)?;

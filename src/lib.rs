@@ -48,8 +48,16 @@ pub use crate::phidget::{AttachCallback, DetachCallback, GenericPhidget, Phidget
 /// Network API
 pub mod net;
 pub use crate::net::ServerType;
+
 /// Module containing all implemented devices
 pub mod devices;
+
+// For v0.1.x compatability, sensors available at the root
+pub use crate::devices::{
+    digital_input::DigitalInput, digital_output::DigitalOutput, hub::Hub,
+    humidity_sensor::HumiditySensor, temperature_sensor::TemperatureSensor,
+    voltage_input::VoltageInput, voltage_output::VoltageOutput,
+};
 
 /// An infinite timeout (wait forever)
 pub const TIMEOUT_INFINITE: Duration = Duration::from_millis(PHIDGET_TIMEOUT_INFINITE as u64);

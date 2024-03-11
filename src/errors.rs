@@ -9,6 +9,17 @@
 // This file may not be copied, modified, or distributed except according
 // to those terms.
 //
+//! The error return type for the library.
+//!
+//! This uses the integer ReturnCode from the phidget22 library as the Error
+//! type for most most operations. In the underlying library, a value of zero
+//! indicates success and all non-zero values are errors. When returned as
+//! an error, it will always have a non-zero value. As these are internally
+//! represented by a u32, the integer error value is always >0.
+//!
+//! The Rust `ReturnCode` is an enumeration that fully implements
+//! std::error::Error.
+//!
 
 use phidget_sys as ffi;
 use std::{
@@ -79,8 +90,8 @@ pub enum ReturnCode {
 }
 
 impl ReturnCode {
-    /// Convert the raw return code into a Result, where zero is Ok, and
-    /// everything else is an error.
+    /// Convert the raw integer return code into a Result, where zero is Ok,
+    /// and everything else is an error.
     pub fn result(rc: c_uint) -> Result<()> {
         match rc {
             0 => Ok(()),
@@ -102,9 +113,7 @@ impl fmt::Display for ReturnCode {
                 if ffi::Phidget_getErrorDescription(*self as c_uint, &mut descr) == 0
                     && !descr.is_null()
                 {
-                    // TODO: Handle conversion error?
-                    let msg = CStr::from_ptr(descr).to_string_lossy();
-                    write!(f, "{}", msg)
+                    write!(f, "{}", CStr::from_ptr(descr).to_string_lossy())
                 }
                 else {
                     write!(f, "Unknown")

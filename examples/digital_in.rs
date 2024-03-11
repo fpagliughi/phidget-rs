@@ -11,8 +11,20 @@
 //
 
 //! Rust Phidget example application to read digital input values.
- 
-use phidget::Phidget;
+//!
+//! The input bit can be selected by choosing the serial number of a device
+//! and channel number for the bit.
+//!
+//! You can also use a port on a hub as a digital intput. In that case the
+//! port is active low (true when grounded) as measured between the white
+//! and black lines. Select the hub (-h) option and the port number, like:
+//!
+//! ```text
+//! $ digital_in -h -p 5
+//! ```
+
+use clap::{arg, value_parser, ArgAction};
+use phidget::{devices::DigitalInput, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
@@ -33,7 +45,7 @@ fn main() -> anyhow::Result<()> {
     let channel = 0; // Specify the channel number of the device to open
 
     println!("Opening Phidget digital input device...");
-    let mut digin = phidget::devices::DigitalInput::new();
+    let mut digin = DigitalInput::new();
 
     // Whether we should use a hub port directly as the input,
     // and if so, which one?
