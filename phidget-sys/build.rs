@@ -26,19 +26,19 @@ fn main() {
     // TODO: We should eventually find or regenerate the
     //      bindings file for the specific target.
     // PHIDGET_ROOT should be set to point to the installation directory of phidgets (e.g. C:\Program Files\Phidgets\Phidget22)
-    let phidget_libs = env::var("PHIDGET_ROOT").unwrap();
-    println!("debug: Building for target: '{}'", phidget_libs);
+    let tgt = env::var("TARGET").unwrap();
+    println!("debug: Building for target: '{}'", tgt);
 
-    // PHIDGET_ROOT should be set to point to the installation directory of phidgets
-    // (e.g. C:\Program Files\Phidgets\Phidget22)
-    if let Ok(phidget_libs) = env::var("PHIDGET_ROOT") {
-        println!("cargo:rustc-link-search={}", phidget_libs);
-    }
+
 
     #[cfg(target_os = "macos")]
     config_macos();
 
     #[cfg(not(target_os = "macos"))]
     println!("cargo:rustc-link-lib=phidget22");
-    println!("cargo:rustc-link-search={}", phidget_libs);
+    // PHIDGET_ROOT should be set to point to the installation directory of phidgets
+    // (e.g. C:\Program Files\Phidgets\Phidget22)
+    if let Ok(phidget_libs) = env::var("PHIDGET_ROOT") {
+        println!("cargo:rustc-link-search={}", phidget_libs);
+    }
 }
