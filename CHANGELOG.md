@@ -1,5 +1,8 @@
 # Change Log for phidget-rs library crate
 
+## v0.1.4 - Unreleased
+
+- Added 32-bit bindings in -sys crate.
 
 ## [v0.1.3](https://github.com/fpagliughi/phidget-rs/compare/v0.1.2..v0.1.3)  - 2024-03-10
 
