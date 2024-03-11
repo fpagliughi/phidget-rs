@@ -26,16 +26,45 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 // --------------------------------------------------------------------------
 
 fn main() -> anyhow::Result<()> {
-    println!("Phidgets-rs {VERSION}");
-    let port = 0; // Use a specific port on a VINT hub directly
-    let serial = 0; // Specify the serial number of the device to open
-    let channel = 0; // Specify the channel number of the device to open
+    let opts = clap::Command::new("temperature")
+        .version(VERSION)
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about("Phidget Temperature Monitoring Example")
+        .disable_help_flag(true)
+        .arg(
+            arg!(--help "Print help information")
+                .short('?')
+                .action(ArgAction::Help),
+        )
+        .arg(
+            arg!(-s --serial [serial_num] "Specify the serial number of the device to open")
+                .value_parser(value_parser!(i32)),
+        )
+        .arg(
+            arg!(-c --channel [chan] "Specify the channel number of the device to open")
+                .value_parser(value_parser!(i32)),
+        )
+        .arg(
+            arg!(-p --port [port] "Use a specific port on a VINT hub directly")
+                .value_parser(value_parser!(i32)),
+        )
+        .get_matches();
+
     println!("Opening Phidget temperature sensor...");
     let mut sensor = TemperatureSensor::new();
 
-    sensor.set_hub_port(port)?;
-    sensor.set_serial_number(serial)?;
-    sensor.set_channel(channel)?;
+    // Some device selection filters...
+    if let Some(&port) = opts.get_one::<i32>("port") {
+        sensor.set_hub_port(port)?;
+    }
+
+    if let Some(&num) = opts.get_one::<i32>("serial") {
+        sensor.set_serial_number(num)?;
+    }
+
+    if let Some(&chan) = opts.get_one::<i32>("channel") {
+        sensor.set_channel(chan)?;
+    }
 
     sensor.open_wait(TIMEOUT)?;
 
