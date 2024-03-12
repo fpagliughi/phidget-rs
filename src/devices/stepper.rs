@@ -12,9 +12,13 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, Error, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetStepperHandle as StepperHandle};
-use std::{mem, os::raw::c_void, ptr};
+use std::{
+    mem,
+    os::raw::{c_uint, c_void},
+    ptr,
+};
 
 /// The function type for the safe Rust position change callback.
 pub type PositionChangeCallback = dyn Fn(&Stepper, f64) + Send + 'static;
@@ -36,12 +40,26 @@ pub struct Stepper {
 }
 
 /// ControlMode for stepper
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum ControlMode {
     /// Step: Control the motor by setting a target position.
-    Step,
+    Step = 0,
     /// Run: Control the motor by selecting a target velocity (sign indicates direction). The motor will rotate continuously in the chosen direction.
     Run,
+}
+
+impl TryFrom<u32> for ControlMode {
+    type Error = Error;
+
+    fn try_from(value: u32) -> Result<Self> {
+        use ControlMode::*;
+        match value {
+            0 => Ok(Step),
+            1 => Ok(Run),
+            _ => Err(ReturnCode::UnknownVal),
+        }
+    }
 }
 
 impl Stepper {
@@ -68,7 +86,7 @@ impl Stepper {
     }
 
     /// Add position offset
-    pub fn get_add_position_offset(&self, position_offset: f64) -> Result<()> {
+    pub fn add_position_offset(&self, position_offset: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_addPositionOffset(self.chan, position_offset)
         })?;
@@ -89,14 +107,14 @@ impl Stepper {
     }
 
     /// Get acceleration
-    pub fn get_acceleration(&self) -> Result<f64> {
+    pub fn acceleration(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getAcceleration(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get minimum acceleration
-    pub fn get_min_acceleration(&self) -> Result<f64> {
+    pub fn min_acceleration(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMinAcceleration(self.chan, &mut value)
@@ -105,7 +123,7 @@ impl Stepper {
     }
 
     /// Get maximum acceleration
-    pub fn get_max_acceleration(&self) -> Result<f64> {
+    pub fn max_acceleration(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMaxAcceleration(self.chan, &mut value)
@@ -115,25 +133,17 @@ impl Stepper {
 
     /// Set control mode
     pub fn set_control_mode(&self, control_mode: ControlMode) -> Result<()> {
-        let _cm = match control_mode {
-            ControlMode::Step => 0,
-            ControlMode::Run => 1,
-        };
-
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_setControlMode(self.chan, _cm) })?;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetStepper_setControlMode(self.chan, control_mode as c_uint)
+        })?;
         Ok(())
     }
 
     /// Get control mode
-    pub fn get_control_mode(&self) -> Result<ControlMode> {
-        let mut _cm: ffi::PhidgetStepper_ControlMode = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_getControlMode(self.chan, &mut _cm) })?;
-
-        match _cm {
-            1 => Ok(ControlMode::Run),
-            0 => Ok(ControlMode::Step),
-            _ => Err(ReturnCode::UnknownVal),
-        }
+    pub fn control_mode(&self) -> Result<ControlMode> {
+        let mut cm: ffi::PhidgetStepper_ControlMode = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_getControlMode(self.chan, &mut cm) })?;
+        ControlMode::try_from(cm)
     }
 
     /// Set current limit
@@ -144,13 +154,13 @@ impl Stepper {
         Ok(())
     }
     /// Get current limit
-    pub fn get_current_limit(&self) -> Result<f64> {
+    pub fn current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getCurrentLimit(self.chan, &mut value) })?;
         Ok(value)
     }
     /// Get minimum current limit
-    pub fn get_min_current_limit(&self) -> Result<f64> {
+    pub fn min_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMinCurrentLimit(self.chan, &mut value)
@@ -158,7 +168,7 @@ impl Stepper {
         Ok(value)
     }
     /// Get maximum current limit
-    pub fn get_max_current_limit(&self) -> Result<f64> {
+    pub fn max_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMaxCurrentLimit(self.chan, &mut value)
@@ -174,14 +184,14 @@ impl Stepper {
         Ok(())
     }
     /// Get data interval
-    pub fn get_data_interval(&self) -> Result<u32> {
+    pub fn data_interval(&self) -> Result<u32> {
         let mut value = 0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getDataInterval(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get minimum data interval
-    pub fn get_min_data_interval(&self) -> Result<u32> {
+    pub fn min_data_interval(&self) -> Result<u32> {
         let mut value = 0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMinDataInterval(self.chan, &mut value)
@@ -190,7 +200,7 @@ impl Stepper {
     }
 
     /// Get maximum data interval
-    pub fn get_max_data_interval(&self) -> Result<u32> {
+    pub fn max_data_interval(&self) -> Result<u32> {
         let mut value = 0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMaxDataInterval(self.chan, &mut value)
@@ -204,21 +214,21 @@ impl Stepper {
         Ok(())
     }
     /// Get data rate
-    pub fn get_data_rate(&self) -> Result<f64> {
+    pub fn data_rate(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getDataRate(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get minimum data rate
-    pub fn get_min_data_rate(&self) -> Result<f64> {
+    pub fn min_data_rate(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getMinDataRate(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get maximum data rate
-    pub fn get_max_data_rate(&self) -> Result<f64> {
+    pub fn max_data_rate(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getMaxDataRate(self.chan, &mut value) })?;
         Ok(value)
@@ -226,35 +236,26 @@ impl Stepper {
 
     /// Set engaged
     pub fn set_engaged(&self, engaged: bool) -> Result<()> {
-        let _v = match engaged {
-            true => 1,
-            false => 0,
-        };
-
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_setEngaged(self.chan, _v) })?;
+        let value = engaged as i32;
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_setEngaged(self.chan, value) })?;
         Ok(())
     }
 
     /// Get engaged
-    pub fn get_engaged(&self) -> Result<bool> {
-        let mut _v = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_getEngaged(self.chan, &mut _v) })?;
-
-        match _v {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => Err(ReturnCode::UnknownVal),
-        }
+    pub fn engaged(&self) -> Result<bool> {
+        let mut value = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_getEngaged(self.chan, &mut value) })?;
+        Ok(value != 0)
     }
     /// Get minimum data rate
-    pub fn get_min_failsafe_time(&self) -> Result<f64> {
+    pub fn min_failsafe_time(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getMinDataRate(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get maximum data rate
-    pub fn get_max_failsafe_time(&self) -> Result<f64> {
+    pub fn max_failsafe_time(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getMaxDataRate(self.chan, &mut value) })?;
         Ok(value)
@@ -269,7 +270,7 @@ impl Stepper {
     }
 
     /// Get holding current limit
-    pub fn get_holding_current_limit(&self) -> Result<f64> {
+    pub fn holding_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getHoldingCurrentLimit(self.chan, &mut value)
@@ -278,33 +279,28 @@ impl Stepper {
     }
 
     /// Get is moving
-    pub fn get_is_moving(&self) -> Result<bool> {
-        let mut _v = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_getIsMoving(self.chan, &mut _v) })?;
-
-        match _v {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => Err(ReturnCode::UnknownVal),
-        }
+    pub fn is_moving(&self) -> Result<bool> {
+        let mut value = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_getIsMoving(self.chan, &mut value) })?;
+        Ok(value != 0)
     }
 
     /// Get position
-    pub fn get_position(&self) -> Result<f64> {
+    pub fn position(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getPosition(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get minimum position
-    pub fn get_min_position(&self) -> Result<f64> {
+    pub fn min_position(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getMinPosition(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get maximum position
-    pub fn get_max_position(&self) -> Result<f64> {
+    pub fn max_position(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getMaxPosition(self.chan, &mut value) })?;
         Ok(value)
@@ -319,7 +315,7 @@ impl Stepper {
     }
 
     /// Get rescale factor
-    pub fn get_rescale_factor(&self) -> Result<f64> {
+    pub fn rescale_factor(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getRescaleFactor(self.chan, &mut value) })?;
         Ok(value)
@@ -331,12 +327,13 @@ impl Stepper {
         Ok(())
     }
     /// [NOT IMPLEMENTED] Set target position async TODO
-    pub async fn _set_target_position_async(&self, stepper: f64) -> Result<()> {
-        _ = stepper;
-        unimplemented!();
-    }
+    // pub async fn set_target_position_async(&self, stepper: f64) -> Result<()> {
+    //     _ = stepper;
+    //     unimplemented!();
+    // }
+
     /// Get target position
-    pub fn get_target_position(&self) -> Result<f64> {
+    pub fn target_position(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getTargetPosition(self.chan, &mut value)
@@ -353,14 +350,14 @@ impl Stepper {
     }
 
     /// Get rescale factor
-    pub fn get_velocity_limit(&self) -> Result<f64> {
+    pub fn velocity_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getVelocityLimit(self.chan, &mut value) })?;
         Ok(value)
     }
 
     /// Get minimum rescale factor
-    pub fn get_min_velocity_limit(&self) -> Result<f64> {
+    pub fn min_velocity_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMinVelocityLimit(self.chan, &mut value)
@@ -369,7 +366,7 @@ impl Stepper {
     }
 
     /// Get maximum rescale factor
-    pub fn get_max_velocity_limit(&self) -> Result<f64> {
+    pub fn max_velocity_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_getMaxVelocityLimit(self.chan, &mut value)

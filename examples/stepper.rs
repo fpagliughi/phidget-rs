@@ -88,7 +88,7 @@ fn main() -> anyhow::Result<()> {
     let port = stepper.hub_port()?;
     println!("Opened on hub port: {}", port);
 
-    let position = stepper.get_position()?;
+    let position = stepper.position()?;
     println!("Stepper position: {}", position);
 
     stepper.set_on_position_change_handler(|_, position: f64| {
