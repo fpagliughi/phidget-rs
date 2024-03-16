@@ -10,11 +10,11 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, Error, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetDigitalInputHandle, PhidgetHandle};
 use std::{
     mem,
-    os::raw::{c_int, c_void},
+    os::raw::{c_int, c_uint, c_void},
     ptr,
 };
 
@@ -37,24 +37,53 @@ pub struct DigitalInput {
 
 /// InputMode for digital input
 /// <http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/phidget22_8h.html#a5ad0740978daad6539d3a8249607bd46>
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum InputMode {
+    /// For using sensors with PNP transistor outputs.
+    PNP = 0,
     /// For using sensors with NPN transistor outputs.
     NPN,
-    /// For using sensors with PNP transistor outputs.
-    PNP,
+}
+
+impl TryFrom<u32> for InputMode {
+    type Error = Error;
+
+    fn try_from(value: u32) -> Result<Self> {
+        use InputMode::*;
+        match value {
+            0 => Ok(PNP),
+            1 => Ok(NPN),
+            _ => Err(ReturnCode::UnknownVal),
+        }
+    }
 }
 
 /// PowerSupply for digital input
 /// <http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/phidget22_8h.html#a0293d3a21e8de247c4b562ceda897876>
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum PowerSupply {
     /// OFF: cannot find docs
-    OFF,
+    OFF = 1,
     /// V12: cannot find docs
     V12,
     /// v24: cannot find docs
     V24,
+}
+
+impl TryFrom<u32> for PowerSupply {
+    type Error = Error;
+
+    fn try_from(value: u32) -> Result<Self> {
+        use PowerSupply::*;
+        match value {
+            1 => Ok(OFF),
+            2 => Ok(V12),
+            3 => Ok(V24),
+            _ => Err(ReturnCode::UnknownVal),
+        }
+    }
 }
 
 impl DigitalInput {
@@ -69,12 +98,7 @@ impl DigitalInput {
 
     /// Set input mode
     pub fn set_input_mode(&self, input_mode: InputMode) -> Result<()> {
-        let v = match input_mode {
-            InputMode::NPN => 1,
-            InputMode::PNP => 0,
-        };
-
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setInputMode(self.chan, v) })?;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setInputMode(self.chan, input_mode as c_uint) })?;
         Ok(())
     }
 
@@ -82,23 +106,14 @@ impl DigitalInput {
     pub fn input_mode(&self) -> Result<InputMode> {
         let mut im: ffi::Phidget_InputMode = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getInputMode(self.chan, &mut im) })?;
-
-        match im {
-            1 => Ok(InputMode::NPN),
-            0 => Ok(InputMode::PNP),
-            _ => Err(ReturnCode::UnknownVal),
-        }
+        InputMode::try_from(im)
     }
 
     /// Set power supply
     pub fn set_power_supply(&self, power_supply: PowerSupply) -> Result<()> {
-        let v: u32 = match power_supply {
-            PowerSupply::OFF => 1,
-            PowerSupply::V12 => 2,
-            PowerSupply::V24 => 3,
-        };
-
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setPowerSupply(self.chan, v) })?;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetDigitalInput_setPowerSupply(self.chan, power_supply as c_uint)
+        })?;
         Ok(())
     }
 
@@ -106,25 +121,14 @@ impl DigitalInput {
     pub fn power_supply(&self) -> Result<PowerSupply> {
         let mut ps: ffi::Phidget_PowerSupply = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getPowerSupply(self.chan, &mut ps) })?;
-
-        match ps {
-            1 => Ok(PowerSupply::OFF),
-            2 => Ok(PowerSupply::V12),
-            3 => Ok(PowerSupply::V24),
-            _ => Err(ReturnCode::UnknownVal),
-        }
+        PowerSupply::try_from(ps)
     }
 
     /// Get the state of the digital input channel
     pub fn state(&self) -> Result<bool> {
-        let mut v = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getState(self.chan, &mut v) })?;
-
-        match v {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => Err(ReturnCode::UnknownVal),
-        }
+        let mut value = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getState(self.chan, &mut value) })?;
+        Ok(value != 0)
     }
 
     // ---------------------------------------------------

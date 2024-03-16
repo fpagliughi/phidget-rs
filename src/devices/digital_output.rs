@@ -57,10 +57,11 @@ impl DigitalOutput {
         Ok(())
     }
     /// Set  duty cycle async
-    pub async fn set_duty_cycle_async(&self, duty_cycle: f64) -> Result<()> {
-        _ = duty_cycle;
-        unimplemented!();
-    }
+    // pub async fn set_duty_cycle_async(&self, duty_cycle: f64) -> Result<()> {
+    //     _ = duty_cycle;
+    //     unimplemented!();
+    // }
+    
     /// Get duty cycle
     pub fn duty_cycle(&self) -> Result<f64> {
         let mut value = 0.0;
@@ -150,10 +151,10 @@ impl DigitalOutput {
     }
 
     /// Set led current limit async
-    pub async fn set_led_current_limit_async(&self, led_current_limit: f64) -> Result<()> {
-        _ = led_current_limit;
-        unimplemented!()
-    }
+    // pub async fn set_led_current_limit_async(&self, led_current_limit: f64) -> Result<()> {
+    //     _ = led_current_limit;
+    //     unimplemented!()
+    // }
 
     /// Get led current limit
     pub fn led_current_limit(&self) -> Result<f64> {
@@ -194,30 +195,20 @@ impl DigitalOutput {
     /// Set the state of the digital output
     /// This overrides any duty cycle that was previously set.
     pub fn set_state(&self, state: bool) -> Result<()> {
-        let v = match state {
-            true => 1,
-            false => 0,
-        };
-
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, v) })
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, state as i32) })
     }
 
     /// Set state async
-    pub async fn set_state_async(&self, state: bool) -> Result<()> {
-        _ = state;
-        unimplemented!();
-    }
+    // pub async fn set_state_async(&self, state: bool) -> Result<()> {
+    //     _ = state;
+    //     unimplemented!();
+    // }
 
     /// Get the state of the digital output channel
     pub fn state(&self) -> Result<bool> {
-        let mut v = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_getState(self.chan, &mut v) })?;
-
-        match v {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => Err(ReturnCode::UnknownVal),
-        }
+        let mut value = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_getState(self.chan, &mut value) })?;
+        Ok(value!=0)
     }
 
     /// Sets a handler to receive attach callbacks
