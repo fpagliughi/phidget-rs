@@ -61,7 +61,7 @@ impl DigitalOutput {
     //     _ = duty_cycle;
     //     unimplemented!();
     // }
-    
+
     /// Get duty cycle
     pub fn duty_cycle(&self) -> Result<f64> {
         let mut value = 0.0;
@@ -208,7 +208,7 @@ impl DigitalOutput {
     pub fn state(&self) -> Result<bool> {
         let mut value = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_getState(self.chan, &mut value) })?;
-        Ok(value!=0)
+        Ok(value != 0)
     }
 
     /// Sets a handler to receive attach callbacks

@@ -46,10 +46,7 @@ fn main() -> anyhow::Result<()> {
             arg!(-p --port [port] "Use a specific port on a VINT hub directly")
                 .value_parser(value_parser!(i32)),
         )
-        .arg(
-            arg!(-t --target [target] "Set target position")
-                .value_parser(value_parser!(f64)),
-        )
+        .arg(arg!(-t --target [target] "Set target position").value_parser(value_parser!(f64)))
         .arg(arg!(-h --hub "Use a hub VINT input port directly").action(ArgAction::SetTrue))
         .get_matches();
 
@@ -64,12 +61,12 @@ fn main() -> anyhow::Result<()> {
     if let Some(&port) = opts.get_one::<i32>("port") {
         stepper.set_hub_port(port)?;
     }
-    
+
     // Some other device selection filters...
     if let Some(&serial) = opts.get_one::<i32>("serial") {
         stepper.set_serial_number(serial)?;
     }
-    
+
     if let Some(&channel) = opts.get_one::<i32>("channel") {
         stepper.set_channel(channel)?;
     }
@@ -77,11 +74,6 @@ fn main() -> anyhow::Result<()> {
     if let Some(&target) = opts.get_one::<f64>("target") {
         target_position = target;
     }
-    
-
-    
-    
-    
 
     stepper.open_wait(TIMEOUT)?;
 

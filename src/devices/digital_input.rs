@@ -98,7 +98,9 @@ impl DigitalInput {
 
     /// Set input mode
     pub fn set_input_mode(&self, input_mode: InputMode) -> Result<()> {
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_setInputMode(self.chan, input_mode as c_uint) })?;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetDigitalInput_setInputMode(self.chan, input_mode as c_uint)
+        })?;
         Ok(())
     }
 
