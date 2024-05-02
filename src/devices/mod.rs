@@ -28,4 +28,6 @@ pub use crate::devices::voltage_input::VoltageInput;
 
 /// Phidget voltage ouput
 pub mod voltage_output;
+mod voltage_ratio_input;
+
 pub use crate::devices::voltage_output::VoltageOutput;
