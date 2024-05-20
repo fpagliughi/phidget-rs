@@ -1,7 +1,7 @@
-use crate::{AttachCallback, DetachCallback, Error, GenericPhidget, Phidget, Result, ReturnCode, VoltageInput};
-use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageInputHandle, PhidgetVoltageRatioInputHandle};
+use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
+use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageRatioInputHandle};
 use std::{mem, os::raw::c_void, ptr};
-use log::error;
+
 
 pub type VoltageRatioChangeCallback = dyn Fn(&VoltageRatioInput, f64) + Send + 'static;
 
@@ -42,18 +42,69 @@ impl VoltageRatioInput {
     }
 
     /// Get a reference to the underlying sensor handle
-    pub fn as_channel(&self) -> &PhidgetVoltageRatioInputHandle {& self.chan}
+    pub fn as_channel(&self) -> &PhidgetVoltageRatioInputHandle {
+        &self.chan
+    }
 
-    /// Get the voltage on the input channel
-    pub fn set_data_interval(&self, data_interval: u32) -> Result<()> {
-        ReturnCode::result(unsafe { ffi::PhidgetVoltageRatioInput_setDataInterval(self.chan, data_interval) })?;
+    pub fn voltage_ratio(&self) -> Result<f64> {
+        let mut voltage_ratio: f64 = 0.0;
+        ReturnCode::result(unsafe { ffi::PhidgetVoltageRatioInput_getVoltageRatio(self.chan, &mut voltage_ratio )})?;
+        Ok(voltage_ratio)
+    }
+
+    // /// Sets a handler to receive voltage change callbacks.
+    // pub fn set_on_voltage_ratio_change_handler<F>(&mut self, cb: F) -> Result<()>
+    // where
+    //     F: Fn(&VoltageRatioInput, f64) + Send + 'static,
+    // {
+    //     // 1st box is fat ptr, 2nd is regular pointer.
+    //     let cb: Box<Box<VoltageRatioChangeCallback>> = Box::new(Box::new(cb));
+    //     let ctx = Box::into_raw(cb) as *mut c_void;
+    //     self.cb = Some(ctx);
+
+    //     ReturnCode::result(unsafe {
+    //         ffi::PhidgetRatioVoltageInput_setOnVoltageRatioChangeHandler(
+    //             self.chan,
+    //             Some(Self::on_voltage_change),
+    //             ctx,
+    //         )
+    //     })
+    // }
+
+    /// Sets a handler to receive attach callbacks
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        self.attach_cb = Some(ctx);
         Ok(())
     }
 
-    pub fn get_min_data_interval(&self) -> Result<u32> {
-        let mut min_data_interval: u32 = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetVoltageRatioInput_getMinDataInterval(self.chan, &mut min_data_interval) })?;
-        Ok(min_data_interval)
+    /// Sets a handler to receive detach callbacks
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&GenericPhidget) + Send + 'static,
+    {
+        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        self.detach_cb = Some(ctx);
+        Ok(())
+    }
+
+
+}
+
+impl Phidget for VoltageRatioInput {
+    fn as_handle(&mut self) -> PhidgetHandle {
+        self.chan as PhidgetHandle
+    }
+}
+
+unsafe impl Send for VoltageRatioInput {}
+
+impl Default for VoltageRatioInput {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -68,4 +119,16 @@ impl From<PhidgetVoltageRatioInputHandle> for VoltageRatioInput {
     }
 }
 
-
+impl Drop for VoltageRatioInput {
+    fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
+        unsafe {
+            ffi::PhidgetVoltageRatioInput_delete(&mut self.chan);
+            crate::drop_cb::<VoltageRatioChangeCallback>(self.cb.take());
+            crate::drop_cb::<AttachCallback>(self.attach_cb.take());
+            crate::drop_cb::<DetachCallback>(self.detach_cb.take());
+        }
+    }
+}

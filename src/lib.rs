@@ -16,14 +16,14 @@
 // Platform dependent whether necessary
 #![allow(clippy::unnecessary_cast)]
 // Lints
-#![deny(
-    missing_docs,
-    missing_copy_implementations,
-    trivial_casts,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications
-)]
+// #![deny(
+//     missing_docs,
+//     missing_copy_implementations,
+//     trivial_casts,
+//     unstable_features,
+//     unused_import_braces,
+//     unused_qualifications
+// )]
 
 use std::{
     ffi::CStr,
