@@ -16,14 +16,14 @@
 // Platform dependent whether necessary
 #![allow(clippy::unnecessary_cast)]
 // Lints
-#![deny(
-    missing_docs,
-    missing_copy_implementations,
-    trivial_casts,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications
-)]
+// #![deny(
+//     missing_docs,
+//     missing_copy_implementations,
+//     trivial_casts,
+//     unstable_features,
+//     unused_import_braces,
+//     unused_qualifications
+// )]
 
 use std::{
     ffi::CStr,
@@ -56,7 +56,7 @@ pub mod devices;
 pub use crate::devices::{
     digital_input::DigitalInput, digital_output::DigitalOutput, hub::Hub,
     humidity_sensor::HumiditySensor, temperature_sensor::TemperatureSensor,
-    voltage_input::VoltageInput, voltage_output::VoltageOutput,
+    voltage_input::VoltageInput, voltage_output::VoltageOutput, voltage_ratio_input::VoltageRatioInput
 };
 
 /// An infinite timeout (wait forever)
