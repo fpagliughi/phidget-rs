@@ -1,11 +1,24 @@
+// phidget-rs/src/voltage_ratio_input.rs
+//
+// Copyright (c) 2023, Frank Pagliughi
+// implemented by Jorge Guerra and Riley Hernandez 2024.
+//
+// This file is part of the 'phidget-rs' library.
+//
+//
+// Licensed under the MIT license:
+//   <LICENSE or http://opensource.org/licenses/MIT>
+// This file may not be copied, modified, or distributed except according
+// to those terms.
+//
 use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageRatioInputHandle};
 use std::{mem, os::raw::c_void, ptr};
 
-
+/// The function type for the safe Rust position change callback.
 pub type VoltageRatioChangeCallback = dyn Fn(&VoltageRatioInput, f64) + Send + 'static;
 
-/// The function signature for the safe Rust voltage ratio change callback.
+/// Phidget voltage ratio input.
 pub struct VoltageRatioInput {
     // Handle to the voltage ratio input in the phidget22 libary
     chan: PhidgetVoltageRatioInputHandle,
@@ -18,6 +31,7 @@ pub struct VoltageRatioInput {
 }
 
 impl VoltageRatioInput {
+    /// Create a new voltage ratio input.
     pub fn new() -> Self {
         let mut chan: PhidgetVoltageRatioInputHandle = ptr::null_mut();
         unsafe {
@@ -46,30 +60,31 @@ impl VoltageRatioInput {
         &self.chan
     }
 
+    /// Get the voltage ratio on the input channel
     pub fn voltage_ratio(&self) -> Result<f64> {
         let mut voltage_ratio: f64 = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetVoltageRatioInput_getVoltageRatio(self.chan, &mut voltage_ratio )})?;
         Ok(voltage_ratio)
     }
 
-    // /// Sets a handler to receive voltage change callbacks.
-    // pub fn set_on_voltage_ratio_change_handler<F>(&mut self, cb: F) -> Result<()>
-    // where
-    //     F: Fn(&VoltageRatioInput, f64) + Send + 'static,
-    // {
-    //     // 1st box is fat ptr, 2nd is regular pointer.
-    //     let cb: Box<Box<VoltageRatioChangeCallback>> = Box::new(Box::new(cb));
-    //     let ctx = Box::into_raw(cb) as *mut c_void;
-    //     self.cb = Some(ctx);
+    /// Sets a handler to receive voltage change callbacks.
+    pub fn set_on_voltage_ratio_change_handler<F>(&mut self, cb: F) -> Result<()>
+    where
+        F: Fn(&VoltageRatioInput, f64) + Send + 'static,
+    {
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<VoltageRatioChangeCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+        self.cb = Some(ctx);
 
-    //     ReturnCode::result(unsafe {
-    //         ffi::PhidgetRatioVoltageInput_setOnVoltageRatioChangeHandler(
-    //             self.chan,
-    //             Some(Self::on_voltage_change),
-    //             ctx,
-    //         )
-    //     })
-    // }
+        ReturnCode::result(unsafe {
+            ffi::PhidgetVoltageRatioInput_setOnVoltageRatioChangeHandler(
+                self.chan,
+                Some(Self::on_voltage_ratio_change),
+                ctx,
+            )
+        })
+    }
 
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>

@@ -1,6 +1,7 @@
 // phidget-rs/examples/voltage_in.rs
 //
 // Copyright (c) 2023, Frank Pagliughi
+// implemented by Jorge Guerra and Riley Hernandez 2024
 //
 // This file is an example application for the 'phidget-rs' library.
 //
@@ -50,7 +51,7 @@ use std::{thread, time::Duration};
 
 // The open/connect timeout
 // const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
-const TIMEOUT: Duration = phidget::TIMEOUT_INFINITE;
+const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
 
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -58,10 +59,10 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 // --------------------------------------------------------------------------
 
 fn main() -> anyhow::Result<()> {
-    let opts = clap::Command::new("voltage_in_ratio")
+    let opts = clap::Command::new("bridge_in")
         .version(VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
-        .about("Phidget Voltage Ratio Input Example")
+        .about("Phidget Voltage (Analog) Input Example")
         .disable_help_flag(true)
         .arg(
             arg!(--help "Print help information")
@@ -77,11 +78,6 @@ fn main() -> anyhow::Result<()> {
                 .value_parser(value_parser!(i32)),
         )
         .arg(
-            arg!(-p --port [port] "Use a specific port on a VINT hub directly")
-                .value_parser(value_parser!(i32)),
-        )
-        .arg(arg!(-h --hub "Use a hub VINT input port directly").action(ArgAction::SetTrue))
-        .arg(
             arg!(-o --offset [offset] "The offset for reading  [val = gain * (volts - offset)]")
                 .default_value("0.0")
                 .value_parser(value_parser!(f64)),
@@ -93,19 +89,12 @@ fn main() -> anyhow::Result<()> {
         )
         .get_matches();
 
-    let use_hub = opts.get_flag("hub");
 
-    println!("Opening Phidget voltage ratio input device...");
+
+    println!("Opening Phidget bridge input device...");
     let mut vin: VoltageRatioInput = VoltageRatioInput::new();
 
-    // Whether we should use a hub port directly as the input,
-    // and if so, which one?
-    vin.set_is_hub_port_device(use_hub)?;
-    if let Some(&port) = opts.get_one::<i32>("port") {
-        vin.set_hub_port(port)?;
-    }
-
-    // Some other device selection filters...
+    //Some other device selection filters..
     if let Some(&num) = opts.get_one::<i32>("serial") {
         vin.set_serial_number(num)?;
     }
@@ -118,20 +107,22 @@ fn main() -> anyhow::Result<()> {
     let gain = *opts.get_one::<f64>("gain").unwrap();
 
     vin.open_wait(TIMEOUT)?;
-
-    if use_hub {
-        let port = vin.hub_port()?;
-        println!("Opened on hub port: {}", port);
-    }
+    let min_interval = vin.min_data_interval().unwrap();
+    vin.set_data_interval(min_interval)?;
+    println!("This device features a 2-3 second calibration procedure once first opened...");
+    thread::sleep(Duration::from_millis(2000));
+    println!("Calibration procedure complete");
 
     let v = vin.voltage_ratio()?;
     let val = (v - offset) * gain;
     println!("{:.4}", val);
 
-    // vin.set_on_voltage_change_handler(move |_, v: f64| {
-    //     let val = (v - offset) * gain;
-    //     println!("{:.4}", val);
-    // })?;
+    vin.set_on_voltage_ratio_change_handler(move |_, v| {
+        let val = (v - offset) * gain;
+        println!("{:.4}", val);
+    })?;
+
+
 
     // ^C handler wakes up the main thread
     ctrlc::set_handler({
@@ -142,8 +133,8 @@ fn main() -> anyhow::Result<()> {
         }
     })
     .expect("Error setting Ctrl-C handler");
-
-    // Block until a ^C wakes us up to exit.
+    //
+    // // Block until a ^C wakes us up to exit.
     thread::park();
     Ok(())
 }
