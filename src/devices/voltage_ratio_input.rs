@@ -1,10 +1,9 @@
-// phidget-rs/src/voltage_ratio_input.rs
+// phidget-rs/examples/voltage_in_ratio.rs
 //
 // Copyright (c) 2023, Frank Pagliughi
-// implemented by Jorge Guerra and Riley Hernandez 2024.
+// Copyright (c) 2024 Jorge Guerra and Riley Hernandez
 //
-// This file is part of the 'phidget-rs' library.
-//
+// This file is an example application for the 'phidget-rs' library.
 //
 // Licensed under the MIT license:
 //   <LICENSE or http://opensource.org/licenses/MIT>

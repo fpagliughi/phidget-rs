@@ -1,7 +1,7 @@
-// phidget-rs/examples/voltage_in.rs
+// phidget-rs/examples/voltage_in_ratio.rs
 //
 // Copyright (c) 2023, Frank Pagliughi
-// implemented by Jorge Guerra and Riley Hernandez 2024
+// Copyright (c) 2024 Jorge Guerra and Riley Hernandez
 //
 // This file is an example application for the 'phidget-rs' library.
 //
@@ -11,42 +11,30 @@
 // to those terms.
 //
 
-//! Rust Phidget example application to read voltage input values.
+//! Rust Phidget example application to read voltage ratio input values.
 //!
 //! A number of sensors have a simple, linear, formula to get a value in
 //! the form:
 //!
 //! ```text
-//! value = (voltage - offset) * gain
+//! value = (voltage_ratio - offset) * gain
 //! ```
-//! This example app allows you to enter the gain and offset to see the value
-//! in the units of the sensor. For example, the [VCP4114.0 Clip-On Current
-//! Transducer](https://www.phidgets.com/?&prodid=1184) has the formula:
+//! On a real application the offset and gain can be determined via a calibration procedure
+//! (https://www.phidgets.com/docs/Calibrating_Load_Cells)
+//! For this example, assume an offset of 2.5 and a gain (scaling factor) of 16 resulting
+//! in a weight in grams. To see the output in grams, run this:
 //!
 //! ```text
-//! DC Amps = (V - 2.5) * 16.0
+//! $ voltage_in_ratio -o 2.5 -g 16.0
 //! ```
 //!
-//! So, to see the output in amps, run this:
-//!
-//! ```text
-//! $ voltage_in -o 2.5 -g 16.0
-//! ```
-//!
-//! The input bit can be selected by choosing the serial number of a device
+//! The input channel can be selected by choosing the serial number of a device
 //! and channel number for the input.
 //!
-//! You can also use a port on a hub as a voltage intput. In that case the
-//! voltage is measured between the white line (signal) and black line
-//! (ground). Select the hub (-h) option and the port number, like:
-//!
-//! ```text
-//! $ voltage_in -h -p 5
-//! ```
+
 
 use clap::{arg, value_parser, ArgAction};
 use phidget::{devices::VoltageRatioInput, Phidget};
-// use phidget::{devices::VoltageInput, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
@@ -78,12 +66,12 @@ fn main() -> anyhow::Result<()> {
                 .value_parser(value_parser!(i32)),
         )
         .arg(
-            arg!(-o --offset [offset] "The offset for reading  [val = gain * (volts - offset)]")
+            arg!(-o --offset [offset] "The offset for reading  [val = gain * (volt_ratio - offset)]")
                 .default_value("0.0")
                 .value_parser(value_parser!(f64)),
         )
         .arg(
-            arg!(-g --gain [gain] "The gain for the reading [val = gain * (volts - offset)]")
+            arg!(-g --gain [gain] "The gain for the reading [val = gain * (volts_ratio - offset)]")
                 .default_value("1.0")
                 .value_parser(value_parser!(f64)),
         )
