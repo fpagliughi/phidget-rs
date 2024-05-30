@@ -56,7 +56,8 @@ pub mod devices;
 pub use crate::devices::{
     digital_input::DigitalInput, digital_output::DigitalOutput, hub::Hub,
     humidity_sensor::HumiditySensor, temperature_sensor::TemperatureSensor,
-    voltage_input::VoltageInput, voltage_output::VoltageOutput, voltage_ratio_input::VoltageRatioInput
+    voltage_input::VoltageInput, voltage_output::VoltageOutput,
+    voltage_ratio_input::VoltageRatioInput,
 };
 
 /// An infinite timeout (wait forever)

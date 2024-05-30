@@ -1,9 +1,11 @@
 # Change Log for phidget-rs library crate
 
-## v0.1.4 - Unreleased
+## [v0.1.4](https://github.com/fpagliughi/phidget-rs/compare/v0.1.3..v0.1.4)  - 2024-05-30
 
+- [#8](https://github.com/fpagliughi/phidget-rs/pull/8) Add voltage ratio input
 - Added 32-bit bindings in -sys crate.
 - Added stepper motor with example. Missing test and async functionality
+
 
 ## [v0.1.3](https://github.com/fpagliughi/phidget-rs/compare/v0.1.2..v0.1.3)  - 2024-03-10
 

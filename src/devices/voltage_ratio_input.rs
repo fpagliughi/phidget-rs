@@ -26,7 +26,7 @@ pub struct VoltageRatioInput {
     // Double-boxed attach callback, if registered
     attach_cb: Option<*mut c_void>,
     // Double-boxed detach callback, if registered
-    detach_cb: Option<*mut c_void>
+    detach_cb: Option<*mut c_void>,
 }
 
 impl VoltageRatioInput {
@@ -62,7 +62,9 @@ impl VoltageRatioInput {
     /// Get the voltage ratio on the input channel
     pub fn voltage_ratio(&self) -> Result<f64> {
         let mut voltage_ratio: f64 = 0.0;
-        ReturnCode::result(unsafe { ffi::PhidgetVoltageRatioInput_getVoltageRatio(self.chan, &mut voltage_ratio )})?;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetVoltageRatioInput_getVoltageRatio(self.chan, &mut voltage_ratio)
+        })?;
         Ok(voltage_ratio)
     }
 
@@ -104,8 +106,6 @@ impl VoltageRatioInput {
         self.detach_cb = Some(ctx);
         Ok(())
     }
-
-
 }
 
 impl Phidget for VoltageRatioInput {

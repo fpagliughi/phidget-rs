@@ -32,7 +32,6 @@
 //! and channel number for the input.
 //!
 
-
 use clap::{arg, value_parser, ArgAction};
 use phidget::{devices::VoltageRatioInput, Phidget};
 use std::{thread, time::Duration};
@@ -77,8 +76,6 @@ fn main() -> anyhow::Result<()> {
         )
         .get_matches();
 
-
-
     println!("Opening Phidget bridge input device...");
     let mut vin: VoltageRatioInput = VoltageRatioInput::new();
 
@@ -109,8 +106,6 @@ fn main() -> anyhow::Result<()> {
         let val = (v - offset) * gain;
         println!("{:.4}", val);
     })?;
-
-
 
     // ^C handler wakes up the main thread
     ctrlc::set_handler({
