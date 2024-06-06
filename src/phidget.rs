@@ -80,19 +80,19 @@ pub trait Phidget: Send {
     /// Get the phidget handle for the device
     fn as_handle(&mut self) -> PhidgetHandle;
 
-    /// Attempt to open the humidity sensor for input.
+    /// Attempt to open the channel.
     fn open(&mut self) -> Result<()> {
         ReturnCode::result(unsafe { ffi::Phidget_open(self.as_handle()) })
     }
 
-    /// Attempt to open the humidity sensor for input, waiting a limited time
+    /// Attempt to open the channel, waiting a limited time
     /// for it to connect.
     fn open_wait(&mut self, to: Duration) -> Result<()> {
         let ms = to.as_millis() as u32;
         ReturnCode::result(unsafe { ffi::Phidget_openWaitForAttachment(self.as_handle(), ms) })
     }
 
-    /// Attempt to open the humidity sensor for input, waiting the default time
+    /// Attempt to open the channel, waiting the default time
     /// for it to connect.
     fn open_wait_default(&mut self) -> Result<()> {
         self.open_wait(crate::TIMEOUT_DEFAULT)
