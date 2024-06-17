@@ -97,7 +97,7 @@ impl DigitalInput {
     }
 
     /// Set input mode
-    pub fn set_input_mode(&self, input_mode: InputMode) -> Result<()> {
+    pub fn set_input_mode(&mut self, input_mode: InputMode) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalInput_setInputMode(self.chan, input_mode as c_uint)
         })?;
@@ -112,7 +112,7 @@ impl DigitalInput {
     }
 
     /// Set power supply
-    pub fn set_power_supply(&self, power_supply: PowerSupply) -> Result<()> {
+    pub fn set_power_supply(&mut self, power_supply: PowerSupply) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalInput_setPowerSupply(self.chan, power_supply as c_uint)
         })?;

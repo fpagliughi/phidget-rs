@@ -14,13 +14,31 @@
 //!
 //! # Basic usage
 //! 
-//! This example shows how to access a simple Digital Input, connected to the first available channel.
+//! This example shows how to access a simple Digital Input, connected to the first available channel of a Vint HUB.
 //! See the `examples` directory for more thorough code snippets.
 //! ```rust,no_run
-//! use phidget::devices::DigitalInput;
-//! fn main()
-//! {
-//!     
+//! use phidget::{DigitalOutput, Phidget};
+//! # use std::time::Duration;
+//! 
+//! // Create a handle to a Digital Output device
+//! let mut out = DigitalOutput::new();
+//! // Before opening the device, set its VINT hub port
+//! out.set_is_hub_port_device(true).unwrap();
+//! out.set_hub_port(0).unwrap();
+//! 
+//! // Start connection. Make sure to handle the result
+//! // to check the device is available
+//! out.open_wait_default().unwrap();
+//! 
+//! // Control the output device
+//! loop {
+//!     println!("Turn on LED");
+//!     out.set_state(true).unwrap();
+//!     std::thread::sleep(Duration::from_secs(3));
+//! 
+//!     println!("Turn off LED");
+//!     out.set_state(false).unwrap();
+//!     std::thread::sleep(Duration::from_secs(3));
 //! }
 //! ```
 //! 
@@ -35,8 +53,37 @@
 //! Sync container, such as a [Mutex](std::sync::Mutex) or a [RwLock](std::sync::RwLock).
 //! 
 //! ```rust,no_run
-//! # use phidget;
-//! 
+//! # use phidget::{Phidget, DigitalOutput, DigitalInput};
+//! # use std::sync::RwLock;
+//! # fn main()
+//! # {
+//! #    // Open a digitalInput to detect a button
+//!     let mut button = DigitalInput::new();
+//! #   button.set_channel(0).unwrap();
+//!     // Open the digital output where
+//!     // a LED is connected to.
+//!     // In this example, it is initialized
+//!     // and wrapped in a RwLock
+//!     let led = RwLock::new(
+//!         {
+//!             let mut tmp = DigitalOutput::new();
+//!             tmp.set_channel(1).unwrap();
+//!             tmp.open_wait_default().unwrap();
+//!             tmp
+//!         }
+//!     );
+//!     // // Make the button alternate the LED state
+//!     button.set_on_state_change_handler(move |_, s: i32|
+//!         {
+//!             match s
+//!             {
+//!                 // Access the device inside the RwLock/Mutex and change its state
+//!                 0 => led.write().unwrap().set_state(false).unwrap(),
+//!                 _ => led.write().unwrap().set_state(true).unwrap()
+//!             }
+//!         }
+//!     ).unwrap();
+//! # }
 //! ```
 
 // Platform dependent whether necessary
