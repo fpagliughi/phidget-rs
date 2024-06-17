@@ -42,7 +42,7 @@ impl VoltageOutput {
     }
 
     /// Set the voltage value that the channel will output.
-    pub fn set_voltage(&self, v: f64) -> Result<()> {
+    pub fn set_voltage(&mut self, v: f64) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetVoltageOutput_setVoltage(self.chan, v) })
     }
 

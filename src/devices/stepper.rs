@@ -78,7 +78,7 @@ impl Stepper {
     }
 
     /// Set enable failsafe
-    pub fn set_enable_failsafe(&self, failsafe_time: u32) -> Result<()> {
+    pub fn set_enable_failsafe(&mut self, failsafe_time: u32) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_enableFailsafe(self.chan, failsafe_time)
         })?;
@@ -86,7 +86,7 @@ impl Stepper {
     }
 
     /// Add position offset
-    pub fn add_position_offset(&self, position_offset: f64) -> Result<()> {
+    pub fn add_position_offset(&mut self, position_offset: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_addPositionOffset(self.chan, position_offset)
         })?;
@@ -94,12 +94,12 @@ impl Stepper {
     }
 
     /// Set reset failsafe
-    pub fn set_reset_failsafe(&self) -> Result<()> {
+    pub fn set_reset_failsafe(&mut self) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetStepper_resetFailsafe(self.chan) })?;
         Ok(())
     }
     /// Set acceleration
-    pub fn set_acceleration(&self, acceleration: f64) -> Result<()> {
+    pub fn set_acceleration(&mut self, acceleration: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_setAcceleration(self.chan, acceleration)
         })?;
@@ -132,7 +132,7 @@ impl Stepper {
     }
 
     /// Set control mode
-    pub fn set_control_mode(&self, control_mode: ControlMode) -> Result<()> {
+    pub fn set_control_mode(&mut self, control_mode: ControlMode) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_setControlMode(self.chan, control_mode as c_uint)
         })?;
@@ -147,7 +147,7 @@ impl Stepper {
     }
 
     /// Set current limit
-    pub fn set_current_limit(&self, current_limit: f64) -> Result<()> {
+    pub fn set_current_limit(&mut self, current_limit: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_setCurrentLimit(self.chan, current_limit)
         })?;
@@ -177,7 +177,7 @@ impl Stepper {
     }
 
     /// Set data interval
-    pub fn set_data_interval(&self, data_interval: u32) -> Result<()> {
+    pub fn set_data_interval(&mut self, data_interval: u32) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_setDataInterval(self.chan, data_interval)
         })?;
@@ -209,7 +209,7 @@ impl Stepper {
     }
 
     /// Set data rate
-    pub fn set_data_rate(&self, data_rate: f64) -> Result<()> {
+    pub fn set_data_rate(&mut self, data_rate: f64) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetStepper_setDataRate(self.chan, data_rate) })?;
         Ok(())
     }
@@ -235,7 +235,7 @@ impl Stepper {
     }
 
     /// Set engaged
-    pub fn set_engaged(&self, engaged: bool) -> Result<()> {
+    pub fn set_engaged(&mut self, engaged: bool) -> Result<()> {
         let value = engaged as i32;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_setEngaged(self.chan, value) })?;
         Ok(())
@@ -262,7 +262,7 @@ impl Stepper {
     }
 
     /// Set holding current limit
-    pub fn set_holding_current_limit(&self, holding_current_limit: f64) -> Result<()> {
+    pub fn set_holding_current_limit(&mut self, holding_current_limit: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_setHoldingCurrentLimit(self.chan, holding_current_limit)
         })?;
@@ -307,7 +307,7 @@ impl Stepper {
     }
 
     /// Set rescale factor
-    pub fn set_rescale_factor(&self, rescale_factor: f64) -> Result<()> {
+    pub fn set_rescale_factor(&mut self, rescale_factor: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_setRescaleFactor(self.chan, rescale_factor)
         })?;
@@ -322,11 +322,12 @@ impl Stepper {
     }
 
     /// Set target position
-    pub fn set_target_position(&self, stepper: f64) -> Result<()> {
+    pub fn set_target_position(&mut self, stepper: f64) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetStepper_setTargetPosition(self.chan, stepper) })?;
         Ok(())
     }
-    /// [NOT IMPLEMENTED] Set target position async TODO
+
+    // /// [NOT IMPLEMENTED] Set target position async TODO
     // pub async fn set_target_position_async(&self, stepper: f64) -> Result<()> {
     //     _ = stepper;
     //     unimplemented!();
@@ -342,7 +343,7 @@ impl Stepper {
     }
 
     /// Set velocity limit
-    pub fn set_velocity_limit(&self, velocity_limit: f64) -> Result<()> {
+    pub fn set_velocity_limit(&mut self, velocity_limit: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetStepper_setVelocityLimit(self.chan, velocity_limit)
         })?;
