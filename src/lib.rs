@@ -12,6 +12,32 @@
 
 //! Safe Rust bindings to the phidget22 library.
 //!
+//! # Basic usage
+//! 
+//! This example shows how to access a simple Digital Input, connected to the first available channel.
+//! See the `examples` directory for more thorough code snippets.
+//! ```rust,no_run
+//! use phidget::devices::DigitalInput;
+//! fn main()
+//! {
+//!     
+//! }
+//! ```
+//! 
+//! # Callbacks
+//! In order to activate an output phidget device depending on the state of other sensors,
+//! for instance by turning on an LED whenever another sensor detects something,
+//! you need to set a callback listening for sensor value changes, and keep a valid handle to the output device to set its state.
+//! 
+//! The problem is, Phidget callbacks do run in a different thread. A Phidget handle can already be sent
+//! to a different thread, as it implements [Send], but it doesn't implement [Sync].
+//! Hence, if you desire to access the same handle from different callbacks, it has to be wrapped in a
+//! Sync container, such as a [Mutex](std::sync::Mutex) or a [RwLock](std::sync::RwLock).
+//! 
+//! ```rust,no_run
+//! # use phidget;
+//! 
+//! ```
 
 // Platform dependent whether necessary
 #![allow(clippy::unnecessary_cast)]

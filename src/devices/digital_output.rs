@@ -35,14 +35,14 @@ impl DigitalOutput {
     }
 
     /// Set enable failsafe
-    pub fn set_enable_failsafe(&self, failsafe_time: u32) -> Result<()> {
+    pub fn set_enable_failsafe(&mut self, failsafe_time: u32) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_enableFailsafe(self.chan, failsafe_time)
         })?;
         Ok(())
     }
     /// Set reset failsafe
-    pub fn set_reset_failsafe(&self) -> Result<()> {
+    pub fn set_reset_failsafe(&mut self) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_resetFailsafe(self.chan) })?;
         Ok(())
     }
@@ -50,12 +50,13 @@ impl DigitalOutput {
     /// Set the duty cycle of the digital output
     /// This is the fraction of the time the output is high. A value of 1.0
     /// means constantly high; 0.0 means constantly low
-    pub fn set_duty_cycle(&self, duty_cycle: f64) -> Result<()> {
+    pub fn set_duty_cycle(&mut self, duty_cycle: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_setDutyCycle(self.chan, duty_cycle)
         })?;
         Ok(())
     }
+    
     /// Set  duty cycle async
     // pub async fn set_duty_cycle_async(&self, duty_cycle: f64) -> Result<()> {
     //     _ = duty_cycle;
@@ -108,7 +109,7 @@ impl DigitalOutput {
     }
 
     /// Set frequency
-    pub fn set_frequency(&self, frequency: f64) -> Result<()> {
+    pub fn set_frequency(&mut self, frequency: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_setFrequency(self.chan, frequency)
         })?;
@@ -143,7 +144,7 @@ impl DigitalOutput {
     }
 
     /// Set led current limit
-    pub fn set_led_current_limit(&self, led_current_limit: f64) -> Result<()> {
+    pub fn set_led_current_limit(&mut self, led_current_limit: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_setLEDCurrentLimit(self.chan, led_current_limit)
         })?;
@@ -194,7 +195,7 @@ impl DigitalOutput {
 
     /// Set the state of the digital output
     /// This overrides any duty cycle that was previously set.
-    pub fn set_state(&self, state: bool) -> Result<()> {
+    pub fn set_state(&mut self, state: bool) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, state as i32) })
     }
 

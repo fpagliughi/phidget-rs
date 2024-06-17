@@ -80,7 +80,7 @@ impl Hub {
     }
 
     /// Set the mode of the specified hub port
-    pub fn set_port_mode(&self, port: i32, mode: HubPortMode) -> Result<()> {
+    pub fn set_port_mode(&mut self, port: i32, mode: HubPortMode) -> Result<()> {
         let port = port as c_int;
         ReturnCode::result(unsafe { ffi::PhidgetHub_setPortMode(self.chan, port, mode as c_uint) })
     }
