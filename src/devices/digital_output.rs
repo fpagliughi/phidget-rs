@@ -56,7 +56,8 @@ impl DigitalOutput {
         })?;
         Ok(())
     }
-    /// Set  duty cycle async
+
+    // /// Set  duty cycle async
     // pub async fn set_duty_cycle_async(&self, duty_cycle: f64) -> Result<()> {
     //     _ = duty_cycle;
     //     unimplemented!();
@@ -150,7 +151,7 @@ impl DigitalOutput {
         Ok(())
     }
 
-    /// Set led current limit async
+    // /// Set led current limit async
     // pub async fn set_led_current_limit_async(&self, led_current_limit: f64) -> Result<()> {
     //     _ = led_current_limit;
     //     unimplemented!()
@@ -198,7 +199,7 @@ impl DigitalOutput {
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, state as i32) })
     }
 
-    /// Set state async
+    // /// Set state async
     // pub async fn set_state_async(&self, state: bool) -> Result<()> {
     //     _ = state;
     //     unimplemented!();
