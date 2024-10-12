@@ -1,6 +1,6 @@
 // phidget-rs/examples/humidity.rs
 //
-// Copyright (c) 2023, Frank Pagliughi
+// Copyright (c) 2023-2024, Frank Pagliughi
 //
 // This file is an example application for the 'phidget-rs' library.
 //
@@ -71,14 +71,18 @@ fn main() -> anyhow::Result<()> {
     let port = sensor.hub_port()?;
     println!("Opened on hub port: {}", port);
 
-    let t = sensor.humidity()?;
-    println!("Humidity: {}", t);
+    println!("\nReading humidity. Hit ^C to exit.");
 
-    sensor.set_on_humidity_change_handler(|_, t: f64| {
-        println!("Humidity: {}", t);
+    // Read a single value...
+    let hum = sensor.humidity()?;
+    println!("  {}", hum);
+
+    // ...and/or set a callback handler
+    sensor.set_on_humidity_change_handler(|_, hum: f64| {
+        println!("  {:.1}%", hum);
     })?;
 
-    // ^C handler wakes up the main thread
+    // ^C handler wakes up the main thread to exit
     ctrlc::set_handler({
         let thr = thread::current();
         move || {
