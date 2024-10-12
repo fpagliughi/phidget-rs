@@ -326,7 +326,8 @@ impl Stepper {
         ReturnCode::result(unsafe { ffi::PhidgetStepper_setTargetPosition(self.chan, stepper) })?;
         Ok(())
     }
-    /// [NOT IMPLEMENTED] Set target position async TODO
+
+    // /// [NOT IMPLEMENTED] Set target position async TODO
     // pub async fn set_target_position_async(&self, stepper: f64) -> Result<()> {
     //     _ = stepper;
     //     unimplemented!();

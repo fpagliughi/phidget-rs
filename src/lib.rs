@@ -12,6 +12,80 @@
 
 //! Safe Rust bindings to the phidget22 library.
 //!
+//! # Basic usage
+//! 
+//! This example shows how to access a simple Digital Input, connected to the first available channel of a Vint HUB.
+//! See the `examples` directory for more thorough code snippets.
+//! ```rust,no_run
+//! use phidget::{DigitalOutput, Phidget};
+//! # use std::time::Duration;
+//! 
+//! // Create a handle to a Digital Output device
+//! let mut out = DigitalOutput::new();
+//! // Before opening the device, set its VINT hub port
+//! out.set_is_hub_port_device(true).unwrap();
+//! out.set_hub_port(0).unwrap();
+//! 
+//! // Start connection. Make sure to handle the result
+//! // to check the device is available
+//! out.open_wait_default().unwrap();
+//! 
+//! // Control the output device
+//! loop {
+//!     println!("Turn on LED");
+//!     out.set_state(true).unwrap();
+//!     std::thread::sleep(Duration::from_secs(3));
+//! 
+//!     println!("Turn off LED");
+//!     out.set_state(false).unwrap();
+//!     std::thread::sleep(Duration::from_secs(3));
+//! }
+//! ```
+//! 
+//! # Callbacks
+//! In order to activate an output phidget device depending on the state of other sensors,
+//! for instance by turning on an LED whenever another sensor detects something,
+//! you need to set a callback listening for sensor value changes, and keep a valid handle to the output device to set its state.
+//! 
+//! The problem is, Phidget callbacks do run in a different thread. A Phidget handle can already be sent
+//! to a different thread, as it implements [Send], but it doesn't implement [Sync].
+//! Hence, if you desire to access the same handle from different callbacks, it has to be wrapped in a
+//! Sync container, such as a [Mutex](std::sync::Mutex).
+//! 
+//! ```rust,no_run
+//! # use phidget::{Phidget, DigitalOutput, DigitalInput};
+//! # use std::sync::Mutex;
+//! # fn main()
+//! # {
+//! #    // Open a digitalInput to detect a button
+//!     let mut button = DigitalInput::new();
+//! #   button.set_channel(0).unwrap();
+//!     // Open the digital output where
+//!     // a LED is connected to.
+//!     // In this example, it is initialized
+//!     // and wrapped in a Mutex
+//!     let led = Mutex::new(
+//!         {
+//!             let mut tmp = DigitalOutput::new();
+//!             tmp.set_channel(1).unwrap();
+//!             tmp.open_wait_default().unwrap();
+//!             tmp
+//!         }
+//!     );
+//!     // Make the button alternate the LED state
+//!     button.set_on_state_change_handler(move |_, s: i32|
+//!         {
+//!             let lock = led.lock().unwrap();
+//!             match s
+//!             {
+//!                 // Access the device inside the Mutex and change its state
+//!                 0 => lock.set_state(false).unwrap(),
+//!                 _ => lock.set_state(true).unwrap()
+//!             }
+//!         }
+//!     ).unwrap();
+//! # }
+//! ```
 
 // Platform dependent whether necessary
 #![allow(clippy::unnecessary_cast)]
