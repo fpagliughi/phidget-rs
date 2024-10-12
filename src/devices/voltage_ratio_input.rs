@@ -19,7 +19,7 @@ pub type VoltageRatioChangeCallback = dyn Fn(&VoltageRatioInput, f64) + Send + '
 
 /// Phidget voltage ratio input.
 pub struct VoltageRatioInput {
-    // Handle to the voltage ratio input in the phidget22 libary
+    // Handle to the voltage ratio input in the phidget22 library
     chan: PhidgetVoltageRatioInputHandle,
     // Double-boxed VoltageRatioChangeCallback, if registered
     cb: Option<*mut c_void>,

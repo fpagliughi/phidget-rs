@@ -35,7 +35,7 @@
 //! The input bit can be selected by choosing the serial number of a device
 //! and channel number for the input.
 //!
-//! You can also use a port on a hub as a voltage intput. In that case the
+//! You can also use a port on a hub as a voltage input. In that case the
 //! voltage is measured between the white line (signal) and black line
 //! (ground). Select the hub (-h) option and the port number, like:
 //!

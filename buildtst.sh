@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Localized Coninuous Integration (CI) for Linux
+# Localized Continuous Integration (CI) for Linux
 # 
 # This just runs some basic build and format checks on the crate using 
 # both the MSRV compiler and the stable version.

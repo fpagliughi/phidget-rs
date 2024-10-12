@@ -10,7 +10,7 @@ pub use crate::devices::humidity_sensor::HumiditySensor;
 pub mod stepper;
 pub use crate::devices::stepper::Stepper;
 
-/// Phidget temerature sensor
+/// Phidget temperature sensor
 pub mod temperature_sensor;
 pub use crate::devices::temperature_sensor::TemperatureSensor;
 
@@ -18,7 +18,7 @@ pub use crate::devices::temperature_sensor::TemperatureSensor;
 pub mod digital_output;
 pub use crate::devices::digital_input::DigitalInput;
 
-/// Phidget digital ouput
+/// Phidget digital output
 pub mod digital_input;
 pub use crate::devices::digital_output::DigitalOutput;
 
@@ -30,7 +30,7 @@ pub use crate::devices::voltage_input::VoltageInput;
 pub mod voltage_ratio_input;
 pub use crate::devices::voltage_ratio_input::VoltageRatioInput;
 
-/// Phidget voltage ouput
+/// Phidget voltage output
 pub mod voltage_output;
 // mod voltage_ratio_input;
 

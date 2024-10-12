@@ -76,7 +76,7 @@ fn main() -> anyhow::Result<()> {
     })?;
 
     temp_sensor.set_on_temperature_change_handler(|_s: &TemperatureSensor, temperature: f64| {
-        println!("Temerature: {}", temperature);
+        println!("Temperature: {}", temperature);
     })?;
 
     // ^C handler wakes up the main thread

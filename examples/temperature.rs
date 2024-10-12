@@ -23,7 +23,7 @@ const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// Convert Celcius to Farenheit
+// Convert Celsius to Fahrenheit
 fn c_to_f(t: f64) -> f64 {
     t * 9.0 / 5.0 + 32.0
 }
@@ -76,7 +76,7 @@ fn main() -> anyhow::Result<()> {
     let port = sensor.hub_port()?;
     println!("Opened on hub port: {}", port);
 
-    println!("\nReading temerature. Hit ^C to exit.");
+    println!("\nReading temperature. Hit ^C to exit.");
 
     // Read a single value...
     let t = sensor.temperature()?;

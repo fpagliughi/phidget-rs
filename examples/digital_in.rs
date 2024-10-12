@@ -15,7 +15,7 @@
 //! The input bit can be selected by choosing the serial number of a device
 //! and channel number for the bit.
 //!
-//! You can also use a port on a hub as a digital intput. In that case the
+//! You can also use a port on a hub as a digital input. In that case the
 //! port is active low (true when grounded) as measured between the white
 //! and black lines. Select the hub (-h) option and the port number, like:
 //!
