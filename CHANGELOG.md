@@ -1,5 +1,12 @@
 # Change Log for phidget-rs library crate
 
+## Unreleased
+
+- [#11](https://github.com/fpagliughi/phidget-rs/pull/1) Examples in the documentation.
+- Minor updates and output formatting to the example apps
+- Ran a spellcheck using the Rust 'typos' utility.
+
+
 ## [v0.1.4](https://github.com/fpagliughi/phidget-rs/compare/v0.1.3..v0.1.4)  - 2024-05-30
 
 - [#8](https://github.com/fpagliughi/phidget-rs/pull/8) Add voltage ratio input
