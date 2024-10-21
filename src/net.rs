@@ -1,6 +1,6 @@
 // phidget-rs/src/net.rs
 //
-// Copyright (c) 2023, Frank Pagliughi
+// Copyright (c) 2023-2024, Frank Pagliughi
 //
 // This file is part of the 'phidget-rs' library.
 //
@@ -11,6 +11,8 @@
 //
 //! Phidget network API
 //!
+//! This contains routines to attacth to remote Phidget servers to control
+//! devices across a network,
 
 use crate::{Error, Result, ReturnCode};
 use phidget_sys as ffi;
@@ -67,7 +69,7 @@ fn ptr_to_string(p: *const c_char) -> std::result::Result<String, std::str::Utf8
 }
 
 /// Information about a phidget server
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Server {
     /// The server name
     pub name: String,
@@ -108,13 +110,10 @@ impl TryFrom<&ffi::PhidgetServer> for Server {
 /////////////////////////////////////////////////////////////////////////////
 
 /// Register a server to which the client will try to connect.
-pub fn add_server(
-    server_name: &str,
-    address: &str,
-    port: i32,
-    password: &str,
-    flags: i32,
-) -> Result<()> {
+///
+/// This should be called when server discovery is not enabled or the
+/// server is not discoverable.
+pub fn add_server(server_name: &str, address: &str, port: i32, password: &str) -> Result<()> {
     let server_name = CString::new(server_name).unwrap();
     let address = CString::new(address).unwrap();
     let password = CString::new(password).unwrap();
@@ -124,12 +123,15 @@ pub fn add_server(
             address.as_ptr(),
             port as c_int,
             password.as_ptr(),
-            flags as c_int,
+            0 as c_int, // 'flags' required to be zero
         )
     })
 }
 
 /// Removes the registration for a server.
+///
+/// If the client is currently connected to this server, the connection
+/// will be closed.
 pub fn remove_server(server_name: &str) -> Result<()> {
     let server_name = CString::new(server_name).unwrap();
     ReturnCode::result(unsafe { ffi::PhidgetNet_removeServer(server_name.as_ptr()) })
@@ -148,10 +150,11 @@ pub fn enable_server(server_name: &str) -> Result<()> {
 }
 
 /// Prevents attempts to automatically connect to a server.
-pub fn disable_server(server_name: &str, flags: i32) -> Result<()> {
+pub fn disable_server(server_name: &str) -> Result<()> {
     let server_name = CString::new(server_name).unwrap();
     ReturnCode::result(unsafe {
-        ffi::PhidgetNet_disableServer(server_name.as_ptr(), flags as c_int)
+        // 'flags' param required to be zero
+        ffi::PhidgetNet_disableServer(server_name.as_ptr(), 0 as c_int)
     })
 }
 
@@ -198,7 +201,6 @@ unsafe extern "C" fn on_server_added(
     // TODO: What is this?
     _kv: *mut c_void,
 ) {
-    println!("on_server_added");
     if ctx.is_null() {
         return;
     }
@@ -253,34 +255,3 @@ where
         ffi::PhidgetNet_setOnServerRemovedHandler(Some(on_server_removed), ctx)
     })
 }
-
-/*
-extern "C" {
-    pub fn PhidgetNet_getServerAddressList(
-        hostname: *const ::std::os::raw::c_char,
-        addressFamily: ::std::os::raw::c_int,
-        addressList: *mut *mut ::std::os::raw::c_char,
-        count: *mut u32,
-    ) -> PhidgetReturnCode;
-}
-extern "C" {
-    pub fn PhidgetNet_freeServerAddressList(
-        addressList: *mut *mut ::std::os::raw::c_char,
-        count: u32,
-    ) -> PhidgetReturnCode;
-}
-extern "C" {
-    pub fn PhidgetNet_startServer(
-        flags: ::std::os::raw::c_int,
-        addressFamily: ::std::os::raw::c_int,
-        serverName: *const ::std::os::raw::c_char,
-        address: *const ::std::os::raw::c_char,
-        port: ::std::os::raw::c_int,
-        password: *const ::std::os::raw::c_char,
-        server: *mut PhidgetServerHandle,
-    ) -> PhidgetReturnCode;
-}
-extern "C" {
-    pub fn PhidgetNet_stopServer(server: *mut PhidgetServerHandle) -> PhidgetReturnCode;
-}
-*/
