@@ -10,7 +10,7 @@
 // to those terms.
 //
 
-//! Rust Phidget example application to moniter server additions and
+//! Rust Phidget example application to monitor server additions and
 //! removals.
 //!
 //! This assumes a server running on localhost.
