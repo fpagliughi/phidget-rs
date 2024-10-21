@@ -1,6 +1,6 @@
 // phidget-rs/src/digital_input.rs
 //
-// Copyright (c) 2023, Frank Pagliughi
+// Copyright (c) 2023-2024, Frank Pagliughi
 //
 // This file is part of the 'phidget-rs' library.
 //
@@ -19,7 +19,7 @@ use std::{
 };
 
 /// The function signature for the safe Rust digital input state change callback.
-pub type DigitalInputCallback = dyn Fn(&DigitalInput, i32) + Send + 'static;
+pub type DigitalInputCallback = dyn Fn(&DigitalInput, u8) + Send + 'static;
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -127,10 +127,10 @@ impl DigitalInput {
     }
 
     /// Get the state of the digital input channel
-    pub fn state(&self) -> Result<bool> {
+    pub fn state(&self) -> Result<u8> {
         let mut value = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getState(self.chan, &mut value) })?;
-        Ok(value != 0)
+        Ok(value as u8)
     }
 
     // ---------------------------------------------------
@@ -145,7 +145,7 @@ impl DigitalInput {
         if !ctx.is_null() {
             let cb: &mut Box<DigitalInputCallback> = &mut *(ctx as *mut _);
             let sensor = Self::from(chan);
-            cb(&sensor, state as i32);
+            cb(&sensor, state as u8);
             mem::forget(sensor);
         }
     }
@@ -158,7 +158,7 @@ impl DigitalInput {
     /// Sets a handler to receive digital input state change callbacks.
     pub fn set_on_state_change_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&DigitalInput, i32) + Send + 'static,
+        F: Fn(&DigitalInput, u8) + Send + 'static,
     {
         // 1st box is fat ptr, 2nd is regular pointer.
         let cb: Box<Box<DigitalInputCallback>> = Box::new(Box::new(cb));

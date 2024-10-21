@@ -1,6 +1,6 @@
-// phidget-rs/src/digital_io.rs
+// phidget-rs/src/digital_output.rs
 //
-// Copyright (c) 2023, Frank Pagliughi
+// Copyright (c) 2023-2024, Frank Pagliughi
 //
 // This file is part of the 'phidget-rs' library.
 //
@@ -12,7 +12,10 @@
 
 use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetDigitalOutputHandle, PhidgetHandle};
-use std::{os::raw::c_void, ptr};
+use std::{
+    os::raw::{c_int, c_void},
+    ptr,
+};
 
 /// Phidget digital output
 pub struct DigitalOutput {
@@ -195,21 +198,21 @@ impl DigitalOutput {
 
     /// Set the state of the digital output
     /// This overrides any duty cycle that was previously set.
-    pub fn set_state(&self, state: bool) -> Result<()> {
-        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, state as i32) })
+    pub fn set_state(&self, state: u8) -> Result<()> {
+        ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, state as c_int) })
     }
 
     // /// Set state async
-    // pub async fn set_state_async(&self, state: bool) -> Result<()> {
+    // pub async fn set_state_async(&self, state: u8) -> Result<()> {
     //     _ = state;
     //     unimplemented!();
     // }
 
     /// Get the state of the digital output channel
-    pub fn state(&self) -> Result<bool> {
+    pub fn state(&self) -> Result<u8> {
         let mut value = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_getState(self.chan, &mut value) })?;
-        Ok(value != 0)
+        Ok(value as u8)
     }
 
     /// Sets a handler to receive attach callbacks

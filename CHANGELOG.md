@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Digital In & Out state consistently represented with a u8
 - [#11](https://github.com/fpagliughi/phidget-rs/pull/1) Examples in the documentation.
 - Minor updates and output formatting to the example apps
 - Ran a spellcheck using the Rust 'typos' utility.

@@ -53,6 +53,11 @@ fn main() -> anyhow::Result<()> {
             arg!(-p --port [port] "Use a specific port on a VINT hub directly")
                 .value_parser(value_parser!(i32)),
         )
+        .arg(
+            arg!(-i --interval [interval] "Sets the interval (period) for data collection, in ms")
+                .default_value("1000")
+                .value_parser(value_parser!(u32)),
+        )
         .get_matches();
 
     println!("Opening Phidget temperature sensor...");
@@ -75,6 +80,14 @@ fn main() -> anyhow::Result<()> {
 
     let port = sensor.hub_port()?;
     println!("Opened on hub port: {}", port);
+
+    // Set the acquisition interval (sampling period)
+    if let Some(&interval) = opts.get_one::<u32>("interval") {
+        let dur = Duration::from_millis(interval as u64);
+        if let Err(err) = sensor.set_data_interval(dur) {
+            eprintln!("Error setting interval: {}", err);
+        }
+    }
 
     println!("\nReading temperature. Hit ^C to exit.");
 

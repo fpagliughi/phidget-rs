@@ -92,7 +92,7 @@ fn main() -> anyhow::Result<()> {
     let s = digin.state()?;
     println!("Digital: {}", s);
 
-    digin.set_on_state_change_handler(|_, s: i32| {
+    digin.set_on_state_change_handler(|_, s: u8| {
         println!("State: {}", s);
     })?;
 

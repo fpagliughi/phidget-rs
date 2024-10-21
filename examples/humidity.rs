@@ -73,6 +73,9 @@ fn main() -> anyhow::Result<()> {
 
     sensor.open_wait(TIMEOUT)?;
 
+    let port = sensor.hub_port()?;
+    println!("Opened on hub port: {}", port);
+
     // Set the acquisition interval (sampling period)
     if let Some(&interval) = opts.get_one::<u32>("interval") {
         let dur = Duration::from_millis(interval as u64);
@@ -80,9 +83,6 @@ fn main() -> anyhow::Result<()> {
             eprintln!("Error setting interval: {}", err);
         }
     }
-
-    let port = sensor.hub_port()?;
-    println!("Opened on hub port: {}", port);
 
     println!("\nReading humidity. Hit ^C to exit.");
 
