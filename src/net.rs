@@ -67,7 +67,7 @@ fn ptr_to_string(p: *const c_char) -> std::result::Result<String, std::str::Utf8
 }
 
 /// Information about a phidget server
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Server {
     /// The server name
     pub name: String,
@@ -198,7 +198,6 @@ unsafe extern "C" fn on_server_added(
     // TODO: What is this?
     _kv: *mut c_void,
 ) {
-    println!("on_server_added");
     if ctx.is_null() {
         return;
     }

@@ -10,24 +10,43 @@
 // to those terms.
 //
 
-//! Rust Phidget example application to moniter server additions.
+//! Rust Phidget example application to moniter server additions and
+//! removals.
+//!
+//! This assumes a server running on localhost.
+//!
+//! After starting this monitor, try disconnecting or shutting down the
+//! server then restarting it.
 //!
 
-use phidget::net::Server as PhidgetServer;
-use std::thread;
+use phidget::net::{Server as PhidgetServer, ServerType as PhidgetServerType};
+use std::{process, thread, time::Duration};
 
-fn on_server_added(_srvr: PhidgetServer) {
-    println!("Server added");
+// Handler for when a server was added
+fn on_server_added(srvr: PhidgetServer) {
+    println!("Server added: {:?}", srvr);
 }
 
-fn on_server_removed(_srvr: PhidgetServer) {
-    println!("Server removed");
+// Handler for when a server was removed
+fn on_server_removed(srvr: PhidgetServer) {
+    println!("Server removed: {:?}", srvr);
 }
 
 fn main() -> anyhow::Result<()> {
+    println!("Phidget server monitor.\n");
+
+    // Register the handlers
     phidget::net::set_on_server_added_handler(on_server_added)?;
     phidget::net::set_on_server_removed_handler(on_server_removed)?;
 
+    // Start the discovery
+    if let Err(err) = phidget::net::enable_server_discovery(PhidgetServerType::DeviceRemote) {
+        eprintln!("{}", err);
+        process::exit(1);
+    }
+
+    // Wait a sec then add a server.
+    thread::sleep(Duration::from_secs(1));
     if let Err(err) = phidget::net::add_server("local", "127.0.0.1", 5661, "", 0) {
         eprintln!("{}", err);
     }
