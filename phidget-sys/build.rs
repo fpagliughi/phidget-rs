@@ -10,16 +10,25 @@
 
 use std::env;
 
+// Looks like the latest Phidgets installer puts the framework into
+// '/Library/Frameworks'
+//
+// Earlier versions sometimes used architecture-specific locations.
+//
+// But it also seems that the dynlib is in /usr/local/lib, so standard
+// linking should work, too.
 #[cfg(target_os = "macos")]
 fn config_macos() {
-    println!("cargo:rustc-link-lib=framework=phidget22");
+    println!("cargo:rustc-link-lib=framework=Phidget22");
+    println!(r"cargo:rustc-link-search=framework=/Library/Frameworks");
 
-    if cfg!(target_arch = "x86_64") {
-        println!(r"cargo:rustc-link-search=framework=/usr/local/Frameworks/");
+    let fw_path = if cfg!(target_arch = "x86_64") {
+        "/usr/local"
     }
     else {
-        println!(r"cargo:rustc-link-search=framework=/opt/homebrew/Frameworks/");
-    }
+        "/opt/homebrew"
+    };
+    println!(r"cargo:rustc-link-search=framework={}/Frameworks", fw_path);
 }
 
 fn main() {
