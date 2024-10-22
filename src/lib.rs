@@ -33,11 +33,11 @@
 //! // Control the output device
 //! loop {
 //!     println!("Turn on LED");
-//!     out.set_state(true).unwrap();
+//!     out.set_state(1).unwrap();
 //!     std::thread::sleep(Duration::from_secs(3));
 //!
 //!     println!("Turn off LED");
-//!     out.set_state(false).unwrap();
+//!     out.set_state(0).unwrap();
 //!     std::thread::sleep(Duration::from_secs(3));
 //! }
 //! ```
@@ -72,12 +72,12 @@
 //!     });
 //!
 //!     // Make the button alternate the LED state
-//!     button.set_on_state_change_handler(move |_, s: i32| {
+//!     button.set_on_state_change_handler(move |_, s: u8| {
 //!         let lock = led.lock().unwrap();
 //!         match s {
 //!             // Access the device inside the Mutex and change its state
-//!             0 => lock.set_state(false).unwrap(),
-//!             _ => lock.set_state(true).unwrap()
+//!             0 => lock.set_state(0).unwrap(),
+//!             _ => lock.set_state(1).unwrap()
 //!         }
 //!     }).unwrap();
 //! # }

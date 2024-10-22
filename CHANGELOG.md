@@ -1,11 +1,11 @@
 # Change Log for phidget-rs library crate
 
-## Unreleased
+## [v0.2.0](https://github.com/fpagliughi/phidget-rs/compare/v0.1.4..v0.2.0)  - 2024-10-21
 
 - Digital In & Out state consistently represented with a u8
 - [#11](https://github.com/fpagliughi/phidget-rs/pull/1) Examples in the documentation.
 - Minor updates and output formatting to the example apps
-- Ran a spellcheck using the Rust 'typos' utility.
+- Created a config file for the Rust 'typos' utility, and used it to run a spell check.
 
 
 ## [v0.1.4](https://github.com/fpagliughi/phidget-rs/compare/v0.1.3..v0.1.4)  - 2024-05-30
