@@ -196,9 +196,13 @@ impl DigitalInput {
 }
 
 impl Phidget for DigitalInput {
-    fn as_handle(&mut self) -> PhidgetHandle {
+    fn as_mut_handle(&mut self) -> PhidgetHandle {
         self.chan as PhidgetHandle
     }
+    fn as_handle(&self) -> PhidgetHandle {
+        self.chan as PhidgetHandle
+    }
+
 }
 
 unsafe impl Send for DigitalInput {}

@@ -121,6 +121,7 @@ pub use crate::net::ServerType;
 
 /// Module containing all implemented devices
 pub mod devices;
+pub mod manager;
 
 // For v0.1.x compatibility, sensors available at the root
 pub use crate::devices::{
