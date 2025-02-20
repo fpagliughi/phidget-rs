@@ -335,10 +335,12 @@ impl GenericPhidget {
 }
 
 impl Phidget for GenericPhidget {
-    /// Get the phidget handle for the device
+    /// Get the mutable phidget handle for the device
     fn as_mut_handle(&mut self) -> PhidgetHandle {
         self.phid
     }
+
+    /// Get the immutable phidget handle for the device
     fn as_handle(&self) -> PhidgetHandle {
         self.phid
     }
