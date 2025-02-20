@@ -237,7 +237,10 @@ impl DigitalOutput {
 }
 
 impl Phidget for DigitalOutput {
-    fn as_handle(&mut self) -> PhidgetHandle {
+    fn as_mut_handle(&mut self) -> PhidgetHandle {
+        self.chan as PhidgetHandle
+    }
+    fn as_handle(&self) -> PhidgetHandle {
         self.chan as PhidgetHandle
     }
 }
