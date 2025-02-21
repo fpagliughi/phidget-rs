@@ -202,7 +202,6 @@ impl Phidget for DigitalInput {
     fn as_handle(&self) -> PhidgetHandle {
         self.chan as PhidgetHandle
     }
-
 }
 
 unsafe impl Send for DigitalInput {}

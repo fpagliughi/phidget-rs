@@ -13,10 +13,10 @@
 //! phidgets and provides a way to handle connect/disconnect event.
 //!
 
+use crate::{ffi, GenericPhidget, ReturnCode};
+use phidget_sys::{PhidgetHandle, PhidgetManagerHandle};
 use std::os::raw::c_void;
 use std::ptr;
-use phidget_sys::{PhidgetHandle, PhidgetManagerHandle};
-use crate::{ffi, GenericPhidget, ReturnCode};
 
 /// The signature for device attach callbacks
 pub type ManagerAttachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
@@ -24,9 +24,12 @@ pub type ManagerAttachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
 /// The signature for device detach callbacks
 pub type ManagerDetachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
 
-
 // Low-level, unsafe callback for device attach events
-unsafe extern "C" fn on_attach_device(_: PhidgetManagerHandle, ctx: *mut c_void, phid: PhidgetHandle) {
+unsafe extern "C" fn on_attach_device(
+    _: PhidgetManagerHandle,
+    ctx: *mut c_void,
+    phid: PhidgetHandle,
+) {
     if !ctx.is_null() {
         let cb: &mut Box<ManagerAttachCallback> = &mut *(ctx as *mut _);
         let ph = GenericPhidget::from(phid);
@@ -35,7 +38,11 @@ unsafe extern "C" fn on_attach_device(_: PhidgetManagerHandle, ctx: *mut c_void,
 }
 
 // Low-level, unsafe callback for device detach events
-unsafe extern "C" fn on_detach_device(_: PhidgetManagerHandle, ctx: *mut c_void, phid: PhidgetHandle) {
+unsafe extern "C" fn on_detach_device(
+    _: PhidgetManagerHandle,
+    ctx: *mut c_void,
+    phid: PhidgetHandle,
+) {
     if !ctx.is_null() {
         let cb: &mut Box<ManagerDetachCallback> = &mut *(ctx as *mut _);
         let ph = GenericPhidget::from(phid);
@@ -53,7 +60,6 @@ pub struct PhidgetManager {
     detach_cb: Option<*mut c_void>,
 }
 
-
 impl PhidgetManager {
     /// Create a new temperature sensor.
     pub fn new() -> Self {
@@ -66,16 +72,12 @@ impl PhidgetManager {
 
     /// Open a PhidgetManager.
     pub fn open(&mut self) -> crate::Result<()> {
-        ReturnCode::result(unsafe {
-            ffi::PhidgetManager_open(self.p_man)
-        })
+        ReturnCode::result(unsafe { ffi::PhidgetManager_open(self.p_man) })
     }
 
     /// Close a PhidgetManager.
     pub fn close(&mut self) -> crate::Result<()> {
-        ReturnCode::result(unsafe {
-            ffi::PhidgetManager_close(self.p_man)
-        })
+        ReturnCode::result(unsafe { ffi::PhidgetManager_close(self.p_man) })
     }
 
     /// Sets a handler to receive attach callbacks

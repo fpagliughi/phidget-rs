@@ -489,7 +489,6 @@ impl Phidget for Stepper {
     fn as_handle(&self) -> PhidgetHandle {
         self.chan as PhidgetHandle
     }
-
 }
 
 unsafe impl Send for Stepper {}

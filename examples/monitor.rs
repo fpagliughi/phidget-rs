@@ -14,12 +14,9 @@
 //! (hotplug) events.
 //!
 
-use clap::{arg, value_parser, ArgAction};
+use clap::{arg, ArgAction};
 use phidget::{manager::PhidgetManager, Phidget};
-use std::{thread, time::Duration};
-
-// Open/connect timeout
-const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
+use std::thread;
 
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -27,7 +24,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 // --------------------------------------------------------------------------
 
 fn main() -> anyhow::Result<()> {
-    let opts = clap::Command::new("humidity")
+    let _opts = clap::Command::new("monitor")
         .version(VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
         .about("Phidget Device Monitor Example")
@@ -51,10 +48,15 @@ fn main() -> anyhow::Result<()> {
         if dev.is_hub_port_device().unwrap() {
             println!("  Hub device");
         }
-        println!("  Class: {:?} [{}]", dev.device_class().unwrap(), dev.device_class_name().unwrap());
-        println!("  Channel: {}", dev.channel_name().unwrap());
+        println!(
+            "  Device Class: {:?} [{}]",
+            dev.device_class().unwrap(),
+            dev.device_class_name().unwrap()
+        );
+        println!("  Channel Name: {}", dev.channel_name().unwrap());
         println!("  Channel Class: {}", dev.channel_class_name().unwrap());
         println!("  Hub Port: {}", dev.hub_port().unwrap_or(-1));
+        println!("  SKU: {}", dev.device_sku().unwrap());
     })?;
 
     mgr.set_on_detach_handler(|_| {

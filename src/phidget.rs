@@ -6,10 +6,12 @@
 // to those terms.
 //
 
-use crate::{ChannelClass, DeviceClass, Result, ReturnCode};
+use crate::{ChannelClass, DeviceClass, DeviceId, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
 use std::{
-    os::raw::{c_int, c_void},
+    ffi::CStr,
+    os::raw::{c_char, c_int, c_void},
+    ptr,
     time::Duration,
 };
 
@@ -238,6 +240,13 @@ pub trait Phidget: Send {
         crate::get_ffi_string(|s| unsafe { ffi::Phidget_getDeviceClassName(self.as_handle(), s) })
     }
 
+    /// Gets the device ID
+    fn device_id(&self) -> Result<DeviceId> {
+        let mut id = ffi::Phidget_DeviceID_PHIDID_NOTHING;
+        ReturnCode::result(unsafe { ffi::Phidget_getDeviceID(self.as_handle(), &mut id) })?;
+        DeviceId::try_from(id)
+    }
+
     /// Get the name of the device class
     fn device_name(&self) -> Result<String> {
         crate::get_ffi_string(|s| unsafe { ffi::Phidget_getDeviceName(self.as_handle(), s) })
@@ -275,7 +284,7 @@ pub trait Phidget: Send {
         ReturnCode::result(unsafe { ffi::Phidget_setHubPort(self.as_mut_handle(), port as c_int) })
     }
 
-    /// Gets the channel index of the device.
+    /// Gets the index of the channel on the device.
     fn channel(&self) -> Result<i32> {
         let mut ch: c_int = 0;
         ReturnCode::result(unsafe { ffi::Phidget_getChannel(self.as_handle(), &mut ch) })?;
@@ -308,6 +317,19 @@ pub trait Phidget: Send {
     /// This must be set before the channel is opened.
     fn set_serial_number(&mut self, sn: i32) -> Result<()> {
         ReturnCode::result(unsafe { ffi::Phidget_setDeviceSerialNumber(self.as_mut_handle(), sn) })
+    }
+
+    /// Gets the SKU (part number) of the Phidget to which the channel
+    /// is attached.
+    fn device_sku(&self) -> Result<String> {
+        unsafe {
+            let mut sku: *const c_char = ptr::null();
+            ReturnCode::result(ffi::Phidget_getDeviceSKU(self.as_handle(), &mut sku))?;
+            Ok(match sku.is_null() {
+                true => String::new(),
+                false => CStr::from_ptr(sku).to_string_lossy().into_owned(),
+            })
+        }
     }
 }
 
