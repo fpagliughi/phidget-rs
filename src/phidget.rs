@@ -158,12 +158,12 @@ pub trait Phidget: Send {
     fn data_interval(&self) -> Result<Duration> {
         let mut ms: u32 = 0;
         ReturnCode::result(unsafe { ffi::Phidget_getDataInterval(self.as_handle(), &mut ms) })?;
-        Ok(Duration::from_millis(ms as u64))
+        Ok(Duration::from_millis(ms.into()))
     }
 
     /// Sets the data interval for the device, if supported.
     fn set_data_interval(&mut self, interval: Duration) -> Result<()> {
-        let ms = interval.as_millis() as u32;
+        let ms = u32::try_from(interval.as_millis()).map_err(|_| ReturnCode::InvalidArg)?;
         ReturnCode::result(unsafe { ffi::Phidget_setDataInterval(self.as_mut_handle(), ms) })
     }
 
@@ -171,14 +171,14 @@ pub trait Phidget: Send {
     fn min_data_interval(&self) -> Result<Duration> {
         let mut ms: u32 = 0;
         ReturnCode::result(unsafe { ffi::Phidget_getMinDataInterval(self.as_handle(), &mut ms) })?;
-        Ok(Duration::from_millis(ms as u64))
+        Ok(Duration::from_millis(ms.into()))
     }
 
     /// Gets the maximum data interval for the device, if supported.
     fn max_data_interval(&self) -> Result<Duration> {
         let mut ms: u32 = 0;
         ReturnCode::result(unsafe { ffi::Phidget_getMaxDataInterval(self.as_handle(), &mut ms) })?;
-        Ok(Duration::from_millis(ms as u64))
+        Ok(Duration::from_millis(ms.into()))
     }
 
     /// Gets the data update rate for the device, if supported.

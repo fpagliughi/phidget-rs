@@ -54,7 +54,7 @@ impl TryFrom<u32> for ControlMode {
 
 /////////////////////////////////////////////////////////////////////////////
 
-/// Phidget Stepper sensor
+/// Phidget Stepper Motor
 pub struct Stepper {
     // Handle to the sensor for the phidget22 library
     chan: StepperHandle,

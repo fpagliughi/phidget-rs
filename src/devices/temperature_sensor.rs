@@ -206,6 +206,72 @@ impl TemperatureSensor {
         Ok(temperature)
     }
 
+    /// Gets the minimum value the `TemperatureChange` event will report.
+    pub fn min_temperature(&self) -> Result<f64> {
+        let mut temperature = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getMinTemperature(self.chan, &mut temperature)
+        })?;
+        Ok(temperature)
+    }
+
+    /// Gets the maximum value the `TemperatureChange` event will report.
+    pub fn max_temperature(&self) -> Result<f64> {
+        let mut temperature = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getMaxTemperature(self.chan, &mut temperature)
+        })?;
+        Ok(temperature)
+    }
+
+    /// Gets the current value of the `TemperatureChangeTrigger`.
+    ///
+    /// The channel will not issue a TemperatureChange event until the
+    /// temperature value has changed by the amount specified by the
+    /// TemperatureChangeTrigger.
+    pub fn temperature_change_trigger(&self) -> Result<f64> {
+        let mut temperature = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getTemperatureChangeTrigger(self.chan, &mut temperature)
+        })?;
+        Ok(temperature)
+    }
+
+    /// Sets the `TemperatureChangeTrigger`.
+    ///
+    /// The channel will not issue a TemperatureChange event until the
+    /// temperature value has changed by the amount specified by the
+    /// TemperatureChangeTrigger.
+    /// Gets the maximum value the `TemperatureChange` event will report.
+    ///
+    /// Setting this to 0 will result in the channel firing events every
+    /// DataInterval. This is useful for applications that implement their
+    /// own data filtering.
+    pub fn set_temperature_change_trigger(&self, trigger: f64) -> Result<()> {
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_setTemperatureChangeTrigger(self.chan, trigger)
+        })?;
+        Ok(())
+    }
+
+    /// Gets the minimum value of the `TemperatureChangeTrigger`.
+    pub fn min_temperature_change_trigger(&self) -> Result<f64> {
+        let mut trigger = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getMinTemperatureChangeTrigger(self.chan, &mut trigger)
+        })?;
+        Ok(trigger)
+    }
+
+    /// Gets the maximum value of the `TemperatureChangeTrigger`.
+    pub fn max_temperature_change_trigger(&self) -> Result<f64> {
+        let mut trigger = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getMaxTemperatureChangeTrigger(self.chan, &mut trigger)
+        })?;
+        Ok(trigger)
+    }
+
     /// Set a handler to receive temperature change callbacks.
     pub fn set_on_temperature_change_handler<F>(&mut self, cb: F) -> Result<()>
     where
