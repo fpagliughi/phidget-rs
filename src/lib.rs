@@ -167,7 +167,7 @@ pub(crate) fn drop_cb<P: ?Sized>(cb: Option<*mut c_void>) {
 // Types from the Phidget22 library
 
 /// Phidget Device ID type
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u32)]
 #[allow(missing_docs)]
 pub enum DeviceId {
@@ -437,7 +437,7 @@ impl TryFrom<u32> for DeviceId {
 }
 
 /// Phidget channel class
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u32)]
 #[allow(missing_docs)]
 pub enum ChannelClass {
@@ -539,7 +539,7 @@ impl TryFrom<u32> for ChannelClass {
 }
 
 /// Phidget device class
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u32)]
 #[allow(missing_docs)]
 pub enum DeviceClass {

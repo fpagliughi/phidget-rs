@@ -16,8 +16,9 @@ use crate::{AttachCallback, DetachCallback, Error, GenericPhidget, Phidget, Resu
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetStepperHandle as StepperHandle};
 use std::{
     mem,
-    os::raw::{c_uint, c_void},
+    os::raw::{c_int, c_uint, c_void},
     ptr,
+    time::Duration,
 };
 
 /// The function type for the safe Rust position change callback.
@@ -26,6 +27,32 @@ pub type PositionChangeCallback = dyn Fn(&Stepper, f64) + Send + 'static;
 pub type VelocityChangeCallback = dyn Fn(&Stepper, f64) + Send + 'static;
 /// The function type for the safe Rust stop callback.
 pub type StoppedCallback = dyn Fn(&Stepper) + Send + 'static;
+
+/// ControlMode for stepper
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Hash)]
+#[repr(u32)]
+pub enum ControlMode {
+    /// Control the motor by setting a target position.
+    Step = ffi::PhidgetStepper_ControlMode_CONTROL_MODE_STEP,
+    /// Control the motor by selecting a target velocity (sign indicates direction).
+    /// The motor will rotate continuously in the chosen direction.
+    Run = ffi::PhidgetStepper_ControlMode_CONTROL_MODE_RUN,
+}
+
+impl TryFrom<u32> for ControlMode {
+    type Error = Error;
+
+    fn try_from(val: u32) -> Result<Self> {
+        use ControlMode::*;
+        match val {
+            ffi::PhidgetStepper_ControlMode_CONTROL_MODE_STEP => Ok(Step),
+            ffi::PhidgetStepper_ControlMode_CONTROL_MODE_RUN => Ok(Run),
+            _ => Err(ReturnCode::UnknownVal),
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
 
 /// Phidget Stepper sensor
 pub struct Stepper {
@@ -37,29 +64,6 @@ pub struct Stepper {
     attach_cb: Option<*mut c_void>,
     // Double-boxed detach callback, if registered
     detach_cb: Option<*mut c_void>,
-}
-
-/// ControlMode for stepper
-#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[repr(u32)]
-pub enum ControlMode {
-    /// Step: Control the motor by setting a target position.
-    Step = 0,
-    /// Run: Control the motor by selecting a target velocity (sign indicates direction). The motor will rotate continuously in the chosen direction.
-    Run,
-}
-
-impl TryFrom<u32> for ControlMode {
-    type Error = Error;
-
-    fn try_from(value: u32) -> Result<Self> {
-        use ControlMode::*;
-        match value {
-            0 => Ok(Step),
-            1 => Ok(Run),
-            _ => Err(ReturnCode::UnknownVal),
-        }
-    }
 }
 
 impl Stepper {
@@ -77,11 +81,31 @@ impl Stepper {
         &self.chan
     }
 
-    /// Set enable failsafe
-    pub fn set_enable_failsafe(&self, failsafe_time: u32) -> Result<()> {
-        ReturnCode::result(unsafe {
-            ffi::PhidgetStepper_enableFailsafe(self.chan, failsafe_time)
-        })?;
+    /// Enable failsafe for the channel with the specified failsafe time.
+    pub fn enable_failsafe(&self, failsafe_time: Duration) -> Result<()> {
+        // TODO: Limit to 32-bit or max?
+        let ms = u32::try_from(failsafe_time.as_millis()).map_err(|_| ReturnCode::InvalidArg)?;
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_enableFailsafe(self.chan, ms) })?;
+        Ok(())
+    }
+
+    /// Get minimum failsafe time.
+    pub fn min_failsafe_time(&self) -> Result<Duration> {
+        let mut val: u32 = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_getMinFailsafeTime(self.chan, &mut val) })?;
+        Ok(Duration::from_millis(val.into()))
+    }
+
+    /// Get maximum failsafe time
+    pub fn max_failsafe_time(&self) -> Result<Duration> {
+        let mut val: u32 = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_getMaxFailsafeTime(self.chan, &mut val) })?;
+        Ok(Duration::from_millis(val.into()))
+    }
+
+    /// Set reset failsafe
+    pub fn reset_failsafe(&self) -> Result<()> {
+        ReturnCode::result(unsafe { ffi::PhidgetStepper_resetFailsafe(self.chan) })?;
         Ok(())
     }
 
@@ -93,11 +117,6 @@ impl Stepper {
         Ok(())
     }
 
-    /// Set reset failsafe
-    pub fn set_reset_failsafe(&self) -> Result<()> {
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_resetFailsafe(self.chan) })?;
-        Ok(())
-    }
     /// Set acceleration
     pub fn set_acceleration(&self, acceleration: f64) -> Result<()> {
         ReturnCode::result(unsafe {
@@ -153,12 +172,14 @@ impl Stepper {
         })?;
         Ok(())
     }
+
     /// Get current limit
     pub fn current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getCurrentLimit(self.chan, &mut value) })?;
         Ok(value)
     }
+
     /// Get minimum current limit
     pub fn min_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
@@ -167,6 +188,7 @@ impl Stepper {
         })?;
         Ok(value)
     }
+
     /// Get maximum current limit
     pub fn max_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
@@ -183,6 +205,7 @@ impl Stepper {
         })?;
         Ok(())
     }
+
     /// Get data interval
     pub fn data_interval(&self) -> Result<u32> {
         let mut value = 0;
@@ -213,6 +236,7 @@ impl Stepper {
         ReturnCode::result(unsafe { ffi::PhidgetStepper_setDataRate(self.chan, data_rate) })?;
         Ok(())
     }
+
     /// Get data rate
     pub fn data_rate(&self) -> Result<f64> {
         let mut value = 0.0;
@@ -236,29 +260,16 @@ impl Stepper {
 
     /// Set engaged
     pub fn set_engaged(&self, engaged: bool) -> Result<()> {
-        let value = engaged as i32;
+        let value = engaged as c_int;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_setEngaged(self.chan, value) })?;
         Ok(())
     }
 
     /// Get engaged
     pub fn engaged(&self) -> Result<bool> {
-        let mut value = 0;
+        let mut value: c_int = 0;
         ReturnCode::result(unsafe { ffi::PhidgetStepper_getEngaged(self.chan, &mut value) })?;
         Ok(value != 0)
-    }
-    /// Get minimum data rate
-    pub fn min_failsafe_time(&self) -> Result<f64> {
-        let mut value = 0.0;
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_getMinDataRate(self.chan, &mut value) })?;
-        Ok(value)
-    }
-
-    /// Get maximum data rate
-    pub fn max_failsafe_time(&self) -> Result<f64> {
-        let mut value = 0.0;
-        ReturnCode::result(unsafe { ffi::PhidgetStepper_getMaxDataRate(self.chan, &mut value) })?;
-        Ok(value)
     }
 
     /// Set holding current limit
@@ -483,9 +494,12 @@ impl Stepper {
 }
 
 impl Phidget for Stepper {
+    /// Get the mutable phidget handle for the device
     fn as_mut_handle(&mut self) -> PhidgetHandle {
         self.chan as PhidgetHandle
     }
+
+    /// Get the immutable/shared phidget handle for the device.
     fn as_handle(&self) -> PhidgetHandle {
         self.chan as PhidgetHandle
     }

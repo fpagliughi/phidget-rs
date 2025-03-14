@@ -88,7 +88,7 @@ pub trait Phidget: Send {
     /// Get the mutable phidget handle for the device
     fn as_mut_handle(&mut self) -> PhidgetHandle;
 
-    /// Get the non mutable phidget for the device.
+    /// Get the immutable/shared phidget handle for the device.
     fn as_handle(&self) -> PhidgetHandle;
 
     /// Attempt to open the channel.

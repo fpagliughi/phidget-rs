@@ -13,7 +13,7 @@
 //! phidgets and provides a way to handle connect/disconnect event.
 //!
 
-use crate::{ffi, GenericPhidget, ReturnCode};
+use crate::{ffi, GenericPhidget, Result, ReturnCode};
 use phidget_sys::{PhidgetHandle, PhidgetManagerHandle};
 use std::os::raw::c_void;
 use std::ptr;
@@ -81,7 +81,7 @@ impl PhidgetManager {
     }
 
     /// Sets a handler to receive attach callbacks
-    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> crate::Result<()>
+    pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
         F: Fn(&GenericPhidget) + Send + 'static,
     {
@@ -97,7 +97,7 @@ impl PhidgetManager {
     }
 
     /// Sets a handler to receive detach callbacks
-    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> crate::Result<()>
+    pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
         F: Fn(&GenericPhidget) + Send + 'static,
     {
