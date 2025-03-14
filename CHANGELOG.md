@@ -1,9 +1,11 @@
 # Change Log for phidget-rs library crate
 
-## v0.2.1  (Unreleased)
+## v0.3.0  (Unreleased)
 
 - Added DeviceId type and Phidget::device_id() query
+- Themperature senor has getters and setters for `RtdType`, `RtdWireSetup`, and `ThermocoupleType`.
 - [#13](https://github.com/fpagliughi/phidget-rs/pull/13) Implemented Fidget Manager
+    - The `Phidget` trait now requires: `fn as_mut_handle(&mut self) -> PhidgetHandle;`
 - Added an example for hotplug events
 
 
