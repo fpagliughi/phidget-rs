@@ -1,3 +1,7 @@
+// phidget-rs/src/phidget.rs
+//
+// Copyright (c) 2025, Frank Pagliughi
+//
 // This file is part of the 'phidget-rs' library.
 //
 // Licensed under the MIT license:
@@ -5,6 +9,8 @@
 // This file may not be copied, modified, or distributed except according
 // to those terms.
 //
+
+//! Phidget trait and `GenericPhidget` implementation.
 
 use crate::{ChannelClass, DeviceClass, DeviceId, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};

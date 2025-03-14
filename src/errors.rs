@@ -1,6 +1,6 @@
 // phidget-rs/src/errors.rs
 //
-// Copyright (c) 2023, Frank Pagliughi
+// Copyright (c) 2023-2025, Frank Pagliughi
 //
 // This file is part of the 'phidget-rs' library.
 //

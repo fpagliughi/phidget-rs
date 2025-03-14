@@ -53,7 +53,7 @@ unsafe extern "C" fn on_detach_device(
 /// Phidget temperature sensor
 pub struct PhidgetManager {
     // Handle to the sensor for the phidget22 library
-    p_man: PhidgetManagerHandle,
+    mgr: PhidgetManagerHandle,
     // Double-boxed attach callback, if registered
     attach_cb: Option<*mut c_void>,
     // Double-boxed detach callback, if registered
@@ -61,23 +61,23 @@ pub struct PhidgetManager {
 }
 
 impl PhidgetManager {
-    /// Create a new temperature sensor.
+    /// Create a new phidget manager
     pub fn new() -> Self {
-        let mut p_man: PhidgetManagerHandle = ptr::null_mut();
+        let mut mgr: PhidgetManagerHandle = ptr::null_mut();
         unsafe {
-            ffi::PhidgetManager_create(&mut p_man);
+            ffi::PhidgetManager_create(&mut mgr);
         }
-        Self::from(p_man)
+        Self::from(mgr)
     }
 
-    /// Open a PhidgetManager.
+    /// Open the phidget manager.
     pub fn open(&mut self) -> crate::Result<()> {
-        ReturnCode::result(unsafe { ffi::PhidgetManager_open(self.p_man) })
+        ReturnCode::result(unsafe { ffi::PhidgetManager_open(self.mgr) })
     }
 
-    /// Close a PhidgetManager.
+    /// Close the phidget manager.
     pub fn close(&mut self) -> crate::Result<()> {
-        ReturnCode::result(unsafe { ffi::PhidgetManager_close(self.p_man) })
+        ReturnCode::result(unsafe { ffi::PhidgetManager_close(self.mgr) })
     }
 
     /// Sets a handler to receive attach callbacks
@@ -90,7 +90,7 @@ impl PhidgetManager {
         let ctx = Box::into_raw(cb) as *mut c_void;
 
         ReturnCode::result(unsafe {
-            ffi::PhidgetManager_setOnAttachHandler(self.p_man, Some(on_attach_device), ctx)
+            ffi::PhidgetManager_setOnAttachHandler(self.mgr, Some(on_attach_device), ctx)
         })?;
         self.attach_cb = Some(ctx);
         Ok(())
@@ -106,17 +106,23 @@ impl PhidgetManager {
         let ctx = Box::into_raw(cb) as *mut c_void;
 
         ReturnCode::result(unsafe {
-            ffi::PhidgetManager_setOnDetachHandler(self.p_man, Some(on_detach_device), ctx)
+            ffi::PhidgetManager_setOnDetachHandler(self.mgr, Some(on_detach_device), ctx)
         })?;
         self.detach_cb = Some(ctx);
         Ok(())
     }
 }
 
+impl Default for PhidgetManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl From<PhidgetManagerHandle> for PhidgetManager {
-    fn from(p_man: PhidgetManagerHandle) -> Self {
+    fn from(mgr: PhidgetManagerHandle) -> Self {
         PhidgetManager {
-            p_man,
+            mgr,
             attach_cb: None,
             detach_cb: None,
         }
@@ -125,6 +131,6 @@ impl From<PhidgetManagerHandle> for PhidgetManager {
 
 impl Drop for PhidgetManager {
     fn drop(&mut self) {
-        let _ = unsafe { ffi::PhidgetManager_close(self.p_man) };
+        let _ = unsafe { ffi::PhidgetManager_close(self.mgr) };
     }
 }
