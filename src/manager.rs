@@ -71,12 +71,12 @@ impl PhidgetManager {
     }
 
     /// Open the phidget manager.
-    pub fn open(&mut self) -> crate::Result<()> {
+    pub fn open(&mut self) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetManager_open(self.mgr) })
     }
 
     /// Close the phidget manager.
-    pub fn close(&mut self) -> crate::Result<()> {
+    pub fn close(&mut self) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetManager_close(self.mgr) })
     }
 
