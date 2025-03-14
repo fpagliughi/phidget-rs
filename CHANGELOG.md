@@ -1,5 +1,12 @@
 # Change Log for phidget-rs library crate
 
+## v0.2.1  (Unreleased)
+
+- Added DeviceId type and Phidget::device_id() query
+- [#13](https://github.com/fpagliughi/phidget-rs/pull/13) Implemented Fidget Manager
+- Added an example for hotplug events
+
+
 ## [v0.2.0](https://github.com/fpagliughi/phidget-rs/compare/v0.1.4..v0.2.0)  - 2024-10-21
 
 - Digital In & Out state consistently represented with a u8

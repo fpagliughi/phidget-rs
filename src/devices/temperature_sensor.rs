@@ -10,11 +10,96 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, Error, GenericPhidget, Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetTemperatureSensorHandle as TemperatureSensorHandle,
 };
 use std::{mem, os::raw::c_void, ptr};
+
+/////////////////////////////////////////////////////////////////////////////
+
+/// Phidget Temperature Sensor RTD Types
+///
+/// A Resistance Temperature Detector (RTD) is a sensor whose
+/// resistance changes as its temperature changes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u32)]
+#[allow(missing_docs)]
+pub enum RtdType {
+    Pt100_3850 = ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT100_3850,
+    Pt1000_3850 = ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT1000_3850,
+    Pt100_3920 = ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT100_3920,
+    Pt1000_3920 = ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT1000_3920,
+}
+
+impl TryFrom<u32> for RtdType {
+    type Error = Error;
+
+    fn try_from(val: u32) -> Result<Self> {
+        use RtdType::*;
+        match val {
+            ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT100_3850 => Ok(Pt100_3850),
+            ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT1000_3850 => Ok(Pt1000_3850),
+            ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT100_3920 => Ok(Pt100_3920),
+            ffi::PhidgetTemperatureSensor_RTDType_RTD_TYPE_PT1000_3920 => Ok(Pt1000_3920),
+            _ => Err(ReturnCode::InvalidArg),
+        }
+    }
+}
+
+/// Phidget Temperature Sensor RTD Wire Setup
+///
+/// The type of wire setup for TRD sensors.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u32)]
+#[allow(missing_docs)]
+pub enum RtdWireSetup {
+    TwoWire = ffi::Phidget_RTDWireSetup_RTD_WIRE_SETUP_2WIRE,
+    ThreeWire = ffi::Phidget_RTDWireSetup_RTD_WIRE_SETUP_3WIRE,
+    FourWire = ffi::Phidget_RTDWireSetup_RTD_WIRE_SETUP_4WIRE,
+}
+
+impl TryFrom<u32> for RtdWireSetup {
+    type Error = Error;
+
+    fn try_from(val: u32) -> Result<Self> {
+        use RtdWireSetup::*;
+        match val {
+            ffi::Phidget_RTDWireSetup_RTD_WIRE_SETUP_2WIRE => Ok(TwoWire),
+            ffi::Phidget_RTDWireSetup_RTD_WIRE_SETUP_3WIRE => Ok(ThreeWire),
+            ffi::Phidget_RTDWireSetup_RTD_WIRE_SETUP_4WIRE => Ok(FourWire),
+            _ => Err(ReturnCode::InvalidArg),
+        }
+    }
+}
+
+/// Phidget Temperature Sensor Thermocouple Types
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u32)]
+#[allow(missing_docs)]
+pub enum ThermocoupleType {
+    TypeJ = ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_J,
+    TypeK = ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_K,
+    TypeE = ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_E,
+    TypeT = ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_T,
+}
+
+impl TryFrom<u32> for ThermocoupleType {
+    type Error = Error;
+
+    fn try_from(val: u32) -> Result<Self> {
+        use ThermocoupleType::*;
+        match val {
+            ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_J => Ok(TypeJ),
+            ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_K => Ok(TypeK),
+            ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_E => Ok(TypeE),
+            ffi::PhidgetTemperatureSensor_ThermocoupleType_THERMOCOUPLE_TYPE_T => Ok(TypeT),
+            _ => Err(ReturnCode::InvalidArg),
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
 
 /// The function type for the safe Rust temperature change callback.
 pub type TemperatureCallback = dyn Fn(&TemperatureSensor, f64) + Send + 'static;
@@ -59,6 +144,57 @@ impl TemperatureSensor {
     /// Get a reference to the underlying sensor handle
     pub fn as_channel(&self) -> &TemperatureSensorHandle {
         &self.chan
+    }
+
+    /// Get the RTD sensor type
+    pub fn rtd_type(&self) -> Result<RtdType> {
+        let mut typ: u32 = 0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getRTDType(self.chan, &mut typ)
+        })?;
+        RtdType::try_from(typ)
+    }
+
+    /// Set the RTD sensor type
+    pub fn set_rtd_type(&mut self, typ: RtdType) -> Result<()> {
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_setRTDType(self.chan, typ as u32)
+        })?;
+        Ok(())
+    }
+
+    /// Get the RTD wire setup
+    pub fn rtd_wire_setup(&self) -> Result<RtdWireSetup> {
+        let mut typ: u32 = 0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getRTDWireSetup(self.chan, &mut typ)
+        })?;
+        RtdWireSetup::try_from(typ)
+    }
+
+    /// Set the RTD wire setup
+    pub fn set_rtd_wire_setup(&mut self, typ: RtdWireSetup) -> Result<()> {
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_setRTDWireSetup(self.chan, typ as u32)
+        })?;
+        Ok(())
+    }
+
+    /// Get the type of thermocouple
+    pub fn thermocouple_type(&self) -> Result<ThermocoupleType> {
+        let mut typ: u32 = 0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_getThermocoupleType(self.chan, &mut typ)
+        })?;
+        ThermocoupleType::try_from(typ)
+    }
+
+    /// Set the type of thermocouple
+    pub fn set_thermocouple_type(&mut self, typ: ThermocoupleType) -> Result<()> {
+        ReturnCode::result(unsafe {
+            ffi::PhidgetTemperatureSensor_setThermocoupleType(self.chan, typ as u32)
+        })?;
+        Ok(())
     }
 
     /// Read the current temperature
