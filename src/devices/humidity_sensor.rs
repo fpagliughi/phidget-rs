@@ -72,6 +72,72 @@ impl HumiditySensor {
         Ok(humidity)
     }
 
+    /// Gets the minimum value the `HumidityChange` event will report.
+    pub fn min_humidity(&self) -> Result<f64> {
+        let mut humidity = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_getMinHumidity(self.chan, &mut humidity)
+        })?;
+        Ok(humidity)
+    }
+
+    /// Gets the maximum value the `HumidityChange` event will report.
+    pub fn max_humidity(&self) -> Result<f64> {
+        let mut humidity = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_getMaxHumidity(self.chan, &mut humidity)
+        })?;
+        Ok(humidity)
+    }
+
+    /// Gets the current value of the `HumidityChangeTrigger`.
+    ///
+    /// The channel will not issue a HumidityChange event until the
+    /// humidity value has changed by the amount specified by the
+    /// HumidityChangeTrigger.
+    pub fn humidity_change_trigger(&self) -> Result<f64> {
+        let mut humidity = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_getHumidityChangeTrigger(self.chan, &mut humidity)
+        })?;
+        Ok(humidity)
+    }
+
+    /// Sets the `HumidityChangeTrigger`.
+    ///
+    /// The channel will not issue a HumidityChange event until the
+    /// humidity value has changed by the amount specified by the
+    /// HumidityChangeTrigger.
+    /// Gets the maximum value the `HumidityChange` event will report.
+    ///
+    /// Setting this to 0 will result in the channel firing events every
+    /// DataInterval. This is useful for applications that implement their
+    /// own data filtering.
+    pub fn set_humidity_change_trigger(&self, trigger: f64) -> Result<()> {
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_setHumidityChangeTrigger(self.chan, trigger)
+        })?;
+        Ok(())
+    }
+
+    /// Gets the minimum value of the `HumidityChangeTrigger`.
+    pub fn min_humidity_change_trigger(&self) -> Result<f64> {
+        let mut trigger = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_getMinHumidityChangeTrigger(self.chan, &mut trigger)
+        })?;
+        Ok(trigger)
+    }
+
+    /// Gets the maximum value of the `HumidityChangeTrigger`.
+    pub fn max_humidity_change_trigger(&self) -> Result<f64> {
+        let mut trigger = 0.0;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHumiditySensor_getMaxHumidityChangeTrigger(self.chan, &mut trigger)
+        })?;
+        Ok(trigger)
+    }
+
     /// Sets a handler to receive humitity change callbacks.
     pub fn set_on_humidity_change_handler<F>(&mut self, cb: F) -> Result<()>
     where
