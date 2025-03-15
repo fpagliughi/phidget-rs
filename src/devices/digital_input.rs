@@ -40,10 +40,10 @@ pub struct DigitalInput {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum InputMode {
-    /// For using sensors with PNP transistor outputs.
-    PNP = 0,
     /// For using sensors with NPN transistor outputs.
-    NPN,
+    NPN = ffi::Phidget_InputMode_INPUT_MODE_NPN,
+    /// For using sensors with PNP transistor outputs.
+    PNP = ffi::Phidget_InputMode_INPUT_MODE_PNP,
 }
 
 impl TryFrom<u32> for InputMode {
@@ -52,8 +52,8 @@ impl TryFrom<u32> for InputMode {
     fn try_from(value: u32) -> Result<Self> {
         use InputMode::*;
         match value {
-            0 => Ok(PNP),
-            1 => Ok(NPN),
+            ffi::Phidget_InputMode_INPUT_MODE_NPN => Ok(NPN),
+            ffi::Phidget_InputMode_INPUT_MODE_PNP => Ok(PNP),
             _ => Err(ReturnCode::UnknownVal),
         }
     }
@@ -64,12 +64,12 @@ impl TryFrom<u32> for InputMode {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum PowerSupply {
-    /// OFF: cannot find docs
-    OFF = 1,
-    /// V12: cannot find docs
-    V12,
-    /// v24: cannot find docs
-    V24,
+    /// Power supply off
+    OFF = ffi::Phidget_PowerSupply_POWER_SUPPLY_OFF,
+    /// 12V power supply
+    V12 = ffi::Phidget_PowerSupply_POWER_SUPPLY_12V,
+    /// 24V power supply
+    V24 = ffi::Phidget_PowerSupply_POWER_SUPPLY_24V,
 }
 
 impl TryFrom<u32> for PowerSupply {
@@ -78,9 +78,9 @@ impl TryFrom<u32> for PowerSupply {
     fn try_from(value: u32) -> Result<Self> {
         use PowerSupply::*;
         match value {
-            1 => Ok(OFF),
-            2 => Ok(V12),
-            3 => Ok(V24),
+            ffi::Phidget_PowerSupply_POWER_SUPPLY_OFF => Ok(OFF),
+            ffi::Phidget_PowerSupply_POWER_SUPPLY_12V => Ok(V12),
+            ffi::Phidget_PowerSupply_POWER_SUPPLY_24V => Ok(V24),
             _ => Err(ReturnCode::UnknownVal),
         }
     }

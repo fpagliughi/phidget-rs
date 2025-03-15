@@ -1,6 +1,6 @@
 // phidget-rs/src/temperature_sensor.rs
 //
-// Copyright (c) 2023, Frank Pagliughi
+// Copyright (c) 2023-2025, Frank Pagliughi
 //
 // This file is part of the 'phidget-rs' library.
 //
@@ -102,13 +102,13 @@ impl TryFrom<u32> for ThermocoupleType {
 /////////////////////////////////////////////////////////////////////////////
 
 /// The function type for the safe Rust temperature change callback.
-pub type TemperatureCallback = dyn Fn(&TemperatureSensor, f64) + Send + 'static;
+pub type TemperatureChangeCallback = dyn Fn(&TemperatureSensor, f64) + Send + 'static;
 
 /// Phidget temperature sensor
 pub struct TemperatureSensor {
     // Handle to the sensor for the phidget22 library
     chan: TemperatureSensorHandle,
-    // Double-boxed TemperatureCallback, if registered
+    // Double-boxed TemperatureChangeCallback, if registered
     cb: Option<*mut c_void>,
     // Double-boxed attach callback, if registered
     attach_cb: Option<*mut c_void>,
@@ -134,7 +134,7 @@ impl TemperatureSensor {
         temperature: f64,
     ) {
         if !ctx.is_null() {
-            let cb: &mut Box<TemperatureCallback> = &mut *(ctx as *mut _);
+            let cb: &mut Box<TemperatureChangeCallback> = &mut *(ctx as *mut _);
             let sensor = Self::from(chan);
             cb(&sensor, temperature);
             mem::forget(sensor);
@@ -278,7 +278,7 @@ impl TemperatureSensor {
         F: Fn(&TemperatureSensor, f64) + Send + 'static,
     {
         // 1st box is fat ptr, 2nd is regular pointer.
-        let cb: Box<Box<TemperatureCallback>> = Box::new(Box::new(cb));
+        let cb: Box<Box<TemperatureChangeCallback>> = Box::new(Box::new(cb));
         let ctx = Box::into_raw(cb) as *mut c_void;
         self.cb = Some(ctx);
 
@@ -347,7 +347,7 @@ impl Drop for TemperatureSensor {
         }
         unsafe {
             ffi::PhidgetTemperatureSensor_delete(&mut self.chan);
-            crate::drop_cb::<TemperatureCallback>(self.cb.take());
+            crate::drop_cb::<TemperatureChangeCallback>(self.cb.take());
             crate::drop_cb::<AttachCallback>(self.attach_cb.take());
             crate::drop_cb::<DetachCallback>(self.detach_cb.take());
         }
