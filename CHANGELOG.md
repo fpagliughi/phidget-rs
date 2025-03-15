@@ -2,6 +2,14 @@
 
 ## v0.3.0  (Unreleased)
 
+- [Breaking] Changes to the `Phidget` trait and non-owning containers.
+    - `GenericPhidget` is now an owning wrapper.
+    - `PhidgetRef` is now the non-owning reference to a generic `PhidgetHandle`
+    - Callbacks now get a `PhidgetRef`, which is also `!Send` and `!Sync`. Thus, they can not "escape" from the callback thread.
+    - The `GenericPhidget` can currently only be created from a `PhidgetRef`, and implements `Send`.
+        - It manages the lifetime of the handle with `ffi::Phidget_retain()` and `ffi::Phidget_release()`.
+    - To keep a Phidget from a hotplug add event, convert the `PhidgetRef` to a `GenericPhidget` and send it out of the callback.
+- The `Phidget` trait no longer requires the `Send` trait, though most device types should manually implement `Send` to be useful. 
 - Added DeviceId type and Phidget::device_id() query
 - Themperature senor has getters and setters for `RtdType`, `RtdWireSetup`, and `ThermocoupleType`.
 - [#13](https://github.com/fpagliughi/phidget-rs/pull/13) Implemented Fidget Manager

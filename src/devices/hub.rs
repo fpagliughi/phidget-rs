@@ -10,7 +10,7 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, Error, GenericPhidget, Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, Error, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetHubHandle as HubHandle};
 use std::{
     os::raw::{c_int, c_uint, c_void},
@@ -92,9 +92,7 @@ impl Hub {
 
     /// Enables/disables power to the VINT hub port.
     pub fn enable_port_power(&mut self, port: i32, on: bool) -> Result<()> {
-        ReturnCode::result(unsafe {
-            ffi::PhidgetHub_setPortPower(self.chan, port, on as c_int)
-        })
+        ReturnCode::result(unsafe { ffi::PhidgetHub_setPortPower(self.chan, port, on as c_int) })
     }
 
     /// Enables/disables Auto Set Speed on the hub port.
@@ -111,21 +109,25 @@ impl Hub {
     /// Determines if this VINT port supports Auto Set Speed
     pub fn port_supports_auto_set_speed(&self, port: i32) -> Result<bool> {
         let mut state: c_int = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetHub_getPortSupportsAutoSetSpeed(self.chan, port, &mut state) })?;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHub_getPortSupportsAutoSetSpeed(self.chan, port, &mut state)
+        })?;
         Ok(state != 0)
     }
 
     /// Determines if the communication speed of this VINT port can be set.
     pub fn port_supports_set_speed(&self, port: i32) -> Result<bool> {
         let mut state: c_int = 0;
-        ReturnCode::result(unsafe { ffi::PhidgetHub_getPortSupportsSetSpeed(self.chan, port, &mut state) })?;
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHub_getPortSupportsSetSpeed(self.chan, port, &mut state)
+        })?;
         Ok(state != 0)
     }
 
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&GenericPhidget) + Send + 'static,
+        F: Fn(&PhidgetRef) + Send + 'static,
     {
         let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
         self.attach_cb = Some(ctx);
@@ -135,7 +137,7 @@ impl Hub {
     /// Sets a handler to receive detach callbacks
     pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&GenericPhidget) + Send + 'static,
+        F: Fn(&PhidgetRef) + Send + 'static,
     {
         let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
         self.detach_cb = Some(ctx);

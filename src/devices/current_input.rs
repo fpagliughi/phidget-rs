@@ -10,7 +10,7 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, GenericPhidget, Phidget, Result, ReturnCode};
+use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetCurrentInputHandle as CurrentInputHandle, PhidgetHandle};
 use std::{mem, os::raw::c_void, ptr};
 
@@ -158,7 +158,7 @@ impl CurrentInput {
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&GenericPhidget) + Send + 'static,
+        F: Fn(&PhidgetRef) + Send + 'static,
     {
         let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
         self.attach_cb = Some(ctx);
@@ -168,7 +168,7 @@ impl CurrentInput {
     /// Sets a handler to receive detach callbacks
     pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&GenericPhidget) + Send + 'static,
+        F: Fn(&PhidgetRef) + Send + 'static,
     {
         let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
         self.detach_cb = Some(ctx);

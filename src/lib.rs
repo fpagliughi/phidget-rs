@@ -113,7 +113,7 @@ pub use crate::errors::*;
 
 /// The main Phidget trait
 pub mod phidget;
-pub use crate::phidget::{AttachCallback, DetachCallback, GenericPhidget, Phidget};
+pub use crate::phidget::{AttachCallback, DetachCallback, Phidget, PhidgetRef};
 
 /// Network API
 pub mod net;

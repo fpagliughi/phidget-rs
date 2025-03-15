@@ -13,16 +13,16 @@
 //! phidgets and provides a way to handle connect/disconnect event.
 //!
 
-use crate::{ffi, GenericPhidget, Result, ReturnCode};
+use crate::{ffi, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{PhidgetHandle, PhidgetManagerHandle};
 use std::os::raw::c_void;
 use std::ptr;
 
 /// The signature for device attach callbacks
-pub type ManagerAttachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
+pub type ManagerAttachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
 /// The signature for device detach callbacks
-pub type ManagerDetachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
+pub type ManagerDetachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
 // Low-level, unsafe callback for device attach events
 unsafe extern "C" fn on_attach_device(
@@ -32,7 +32,7 @@ unsafe extern "C" fn on_attach_device(
 ) {
     if !ctx.is_null() {
         let cb: &mut Box<ManagerAttachCallback> = &mut *(ctx as *mut _);
-        let ph = GenericPhidget::from(phid);
+        let ph = PhidgetRef::from(phid);
         cb(&ph);
     }
 }
@@ -45,7 +45,7 @@ unsafe extern "C" fn on_detach_device(
 ) {
     if !ctx.is_null() {
         let cb: &mut Box<ManagerDetachCallback> = &mut *(ctx as *mut _);
-        let ph = GenericPhidget::from(phid);
+        let ph = PhidgetRef::from(phid);
         cb(&ph);
     }
 }
@@ -83,7 +83,7 @@ impl PhidgetManager {
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&GenericPhidget) + Send + 'static,
+        F: Fn(&PhidgetRef) + Send + 'static,
     {
         // 1st box is fat ptr, 2nd is regular pointer.
         let cb: Box<Box<ManagerAttachCallback>> = Box::new(Box::new(cb));
@@ -99,7 +99,7 @@ impl PhidgetManager {
     /// Sets a handler to receive detach callbacks
     pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&GenericPhidget) + Send + 'static,
+        F: Fn(&PhidgetRef) + Send + 'static,
     {
         // 1st box is fat ptr, 2nd is regular pointer.
         let cb: Box<Box<ManagerDetachCallback>> = Box::new(Box::new(cb));

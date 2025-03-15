@@ -10,9 +10,9 @@
 // to those terms.
 //
 
-//! Phidget trait and `GenericPhidget` implementation.
+//! Phidget trait and `PhidgetRef` implementation.
 
-use crate::{ChannelClass, DeviceClass, DeviceId, Result, ReturnCode};
+use crate::{ChannelClass, DeviceClass, DeviceId, Error, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
 use std::{
     ffi::CStr,
@@ -22,16 +22,16 @@ use std::{
 };
 
 /// The signature for device attach callbacks
-pub type AttachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
+pub type AttachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
 /// The signature for device detach callbacks
-pub type DetachCallback = dyn Fn(&GenericPhidget) + Send + 'static;
+pub type DetachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
 // Low-level, unsafe callback for device attach events
 unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
     if !ctx.is_null() {
         let cb: &mut Box<AttachCallback> = &mut *(ctx as *mut _);
-        let ph = GenericPhidget::from(phid);
+        let ph = PhidgetRef::from(phid);
         cb(&ph);
     }
 }
@@ -40,7 +40,7 @@ unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
 unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
     if !ctx.is_null() {
         let cb: &mut Box<DetachCallback> = &mut *(ctx as *mut _);
-        let ph = GenericPhidget::from(phid);
+        let ph = PhidgetRef::from(phid);
         cb(&ph);
     }
 }
@@ -52,7 +52,7 @@ unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
 pub fn set_on_attach_handler<P, F>(ph: &mut P, cb: F) -> Result<*mut c_void>
 where
     P: Phidget,
-    F: Fn(&GenericPhidget) + Send + 'static,
+    F: Fn(&PhidgetRef) + Send + 'static,
 {
     // 1st box is fat ptr, 2nd is regular pointer.
     let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
@@ -69,7 +69,7 @@ where
 pub fn set_on_detach_handler<P, F>(ph: &mut P, cb: F) -> Result<*mut c_void>
 where
     P: Phidget,
-    F: Fn(&GenericPhidget) + Send + 'static,
+    F: Fn(&PhidgetRef) + Send + 'static,
 {
     // 1st box is fat ptr, 2nd is regular pointer.
     let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));
@@ -84,7 +84,7 @@ where
 /////////////////////////////////////////////////////////////////////////////
 
 /// The base trait and implementation for Phidgets
-pub trait Phidget: Send {
+pub trait Phidget {
     /// Get the immutable/shared phidget handle for the device.
     fn as_handle(&self) -> PhidgetHandle;
 
@@ -341,7 +341,7 @@ pub trait Phidget: Send {
 
 /////////////////////////////////////////////////////////////////////////////
 
-/// A wrapper for a generic phidget.
+/// A non-owning reference to a generic phidget.
 ///
 /// This contains a wrapper around a generic PhidgetHandle, which might be
 /// any type of device. It can be queried for additional information and
@@ -351,33 +351,71 @@ pub trait Phidget: Send {
 /// when dropped. It is typically used to wrap a generic handle sent to a
 /// callback from the phidget22 library.
 #[allow(missing_copy_implementations)]
-pub struct GenericPhidget {
-    phid: PhidgetHandle,
-}
+pub struct PhidgetRef(PhidgetHandle);
 
-impl GenericPhidget {
+impl PhidgetRef {
     /// Creates a new, generic phidget for the handle.
     pub fn new(phid: PhidgetHandle) -> Self {
-        Self { phid }
+        Self(phid)
     }
 }
 
-impl Phidget for GenericPhidget {
-    /// Get the mutable phidget handle for the device
+impl Phidget for PhidgetRef {
     fn as_mut_handle(&mut self) -> PhidgetHandle {
-        self.phid
+        self.0
     }
-
-    /// Get the immutable phidget handle for the device
     fn as_handle(&self) -> PhidgetHandle {
-        self.phid
+        self.0
+    }
+}
+
+impl From<PhidgetHandle> for PhidgetRef {
+    fn from(phid: PhidgetHandle) -> Self {
+        Self::new(phid)
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+/// An generic phidget.
+///
+/// This contains a wrapper around a generic PhidgetHandle, which might be
+/// any type of device. It can be queried for additional information and
+/// potentially converted into a specific device object.
+///
+/// Current this can only be created from a `PhidgetRef`, and will manage the
+/// lifetime of the underlying `PhidgetHandle` using `ffi::Phidget_retain()`
+/// and `ffi::Phidget_release()`.
+#[allow(missing_copy_implementations)]
+pub struct GenericPhidget(PhidgetHandle);
+
+impl Phidget for GenericPhidget {
+    fn as_mut_handle(&mut self) -> PhidgetHandle {
+        self.0
+    }
+    fn as_handle(&self) -> PhidgetHandle {
+        self.0
     }
 }
 
 unsafe impl Send for GenericPhidget {}
 
-impl From<PhidgetHandle> for GenericPhidget {
-    fn from(phid: PhidgetHandle) -> Self {
-        Self::new(phid)
+impl Drop for GenericPhidget {
+    fn drop(&mut self) {
+        if let Ok(true) = self.is_open() {
+            let _ = self.close();
+        }
+        unsafe { ffi::Phidget_release(&mut self.0) };
+    }
+}
+
+impl TryFrom<PhidgetRef> for GenericPhidget {
+    type Error = Error;
+
+    fn try_from(phid: PhidgetRef) -> Result<Self> {
+        unsafe {
+            ReturnCode::result(ffi::Phidget_retain(phid.0))?;
+        }
+        Ok(Self(phid.0))
     }
 }
