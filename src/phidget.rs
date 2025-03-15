@@ -85,11 +85,11 @@ where
 
 /// The base trait and implementation for Phidgets
 pub trait Phidget: Send {
-    /// Get the mutable phidget handle for the device
-    fn as_mut_handle(&mut self) -> PhidgetHandle;
-
     /// Get the immutable/shared phidget handle for the device.
     fn as_handle(&self) -> PhidgetHandle;
+
+    /// Get the mutable phidget handle for the device
+    fn as_mut_handle(&mut self) -> PhidgetHandle;
 
     /// Attempt to open the channel.
     fn open(&mut self) -> Result<()> {
@@ -99,7 +99,7 @@ pub trait Phidget: Send {
     /// Attempt to open the channel, waiting a limited time
     /// for it to connect.
     fn open_wait(&mut self, to: Duration) -> Result<()> {
-        let ms = to.as_millis() as u32;
+        let ms = u32::try_from(to.as_millis()).map_err(|_| ReturnCode::InvalidArg)?;
         ReturnCode::result(unsafe { ffi::Phidget_openWaitForAttachment(self.as_mut_handle(), ms) })
     }
 

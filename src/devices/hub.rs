@@ -24,15 +24,15 @@ use std::{
 #[repr(u32)]
 pub enum HubPortMode {
     /// Communicate with a smart VINT device
-    Vint = ffi::PhidgetHub_PortMode_PORT_MODE_VINT_PORT, // 0
+    Vint = ffi::PhidgetHub_PortMode_PORT_MODE_VINT_PORT,
     /// 5V Logic-level digital input
-    DigitalInput = ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_INPUT, // 1
+    DigitalInput = ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_INPUT,
     /// 3.3V digital output
-    DigitalOutput = ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_OUTPUT, // 2
+    DigitalOutput = ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_OUTPUT,
     /// 0-5V voltage input for non-ratiometric sensors
-    VoltageInput = ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_INPUT, // 3
+    VoltageInput = ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_INPUT,
     /// 0-5V voltage input for ratiometric sensors
-    VoltageRatioInput = ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_RATIO_INPUT, // 4
+    VoltageRatioInput = ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_RATIO_INPUT,
 }
 
 impl TryFrom<u32> for HubPortMode {
@@ -41,11 +41,11 @@ impl TryFrom<u32> for HubPortMode {
     fn try_from(val: u32) -> Result<Self> {
         use HubPortMode::*;
         match val {
-            ffi::PhidgetHub_PortMode_PORT_MODE_VINT_PORT => Ok(Vint), // 0
-            ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_INPUT => Ok(DigitalInput), // 1
-            ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_OUTPUT => Ok(DigitalOutput), // 2
-            ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_INPUT => Ok(VoltageInput), // 3
-            ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_RATIO_INPUT => Ok(VoltageRatioInput), // 4
+            ffi::PhidgetHub_PortMode_PORT_MODE_VINT_PORT => Ok(Vint),
+            ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_INPUT => Ok(DigitalInput),
+            ffi::PhidgetHub_PortMode_PORT_MODE_DIGITAL_OUTPUT => Ok(DigitalOutput),
+            ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_INPUT => Ok(VoltageInput),
+            ffi::PhidgetHub_PortMode_PORT_MODE_VOLTAGE_RATIO_INPUT => Ok(VoltageRatioInput),
             _ => Err(ReturnCode::InvalidArg),
         }
     }
@@ -73,7 +73,6 @@ impl Hub {
 
     /// Get the mode of the specified hub port
     pub fn port_mode(&self, port: i32) -> Result<HubPortMode> {
-        let port = port as c_int;
         let mut mode: c_uint = 0;
         ReturnCode::result(unsafe { ffi::PhidgetHub_getPortMode(self.chan, port, &mut mode) })?;
         HubPortMode::try_from(mode)
@@ -81,8 +80,46 @@ impl Hub {
 
     /// Set the mode of the specified hub port
     pub fn set_port_mode(&self, port: i32, mode: HubPortMode) -> Result<()> {
-        let port = port as c_int;
         ReturnCode::result(unsafe { ffi::PhidgetHub_setPortMode(self.chan, port, mode as c_uint) })
+    }
+
+    /// Determines if power is enabled for this VINT port
+    pub fn is_port_power_enabled(&self, port: i32) -> Result<bool> {
+        let mut state: c_int = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetHub_getPortPower(self.chan, port, &mut state) })?;
+        Ok(state != 0)
+    }
+
+    /// Enables/disables power to the VINT hub port.
+    pub fn enable_port_power(&mut self, port: i32, on: bool) -> Result<()> {
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHub_setPortPower(self.chan, port, on as c_int)
+        })
+    }
+
+    /// Enables/disables Auto Set Speed on the hub port.
+    ///
+    /// When enabled, and a supported VINT device is attached, the
+    /// `HubPortSpeed` will automatically be set to the fastest reliable
+    /// speed. This is enabled by default on supported VINT Hubs.
+    pub fn enable_port_auto_set_speed(&mut self, port: i32, on: bool) -> Result<()> {
+        ReturnCode::result(unsafe {
+            ffi::PhidgetHub_setPortAutoSetSpeed(self.chan, port, on as c_int)
+        })
+    }
+
+    /// Determines if this VINT port supports Auto Set Speed
+    pub fn port_supports_auto_set_speed(&self, port: i32) -> Result<bool> {
+        let mut state: c_int = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetHub_getPortSupportsAutoSetSpeed(self.chan, port, &mut state) })?;
+        Ok(state != 0)
+    }
+
+    /// Determines if the communication speed of this VINT port can be set.
+    pub fn port_supports_set_speed(&self, port: i32) -> Result<bool> {
+        let mut state: c_int = 0;
+        ReturnCode::result(unsafe { ffi::PhidgetHub_getPortSupportsSetSpeed(self.chan, port, &mut state) })?;
+        Ok(state != 0)
     }
 
     /// Sets a handler to receive attach callbacks
