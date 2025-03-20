@@ -45,18 +45,21 @@ fn main() -> anyhow::Result<()> {
     // Set callback handlers
     mgr.set_on_attach_handler(|dev| {
         println!("Attach");
-        if dev.is_hub_port_device().unwrap() {
-            println!("  Hub device");
+
+        if let Ok(info) = dev.info() {
+            if dev.is_hub_port_device().unwrap() {
+                println!("  Hub device");
+            }
+            println!(
+                "  Device Class: {:?} [{}]",
+                info.device_class,
+                dev.device_class_name().unwrap()
+            );
+            println!("  Channel Name: {}", info.channel_name);
+            println!("  Channel Class: {:?}", info.channel_class /*_name*/);
+            println!("  Hub Port: {}", dev.hub_port().unwrap_or(-1));
+            println!("  SKU: {}", dev.device_sku().unwrap());
         }
-        println!(
-            "  Device Class: {:?} [{}]",
-            dev.device_class().unwrap(),
-            dev.device_class_name().unwrap()
-        );
-        println!("  Channel Name: {}", dev.channel_name().unwrap());
-        println!("  Channel Class: {}", dev.channel_class_name().unwrap());
-        println!("  Hub Port: {}", dev.hub_port().unwrap_or(-1));
-        println!("  SKU: {}", dev.device_sku().unwrap());
     })?;
 
     mgr.set_on_detach_handler(|_| {

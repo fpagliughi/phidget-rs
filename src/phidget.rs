@@ -21,6 +21,9 @@ use std::{
     time::Duration,
 };
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// The signature for device attach callbacks
 pub type AttachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
@@ -79,6 +82,28 @@ where
         ffi::Phidget_setOnDetachHandler(ph.as_mut_handle(), Some(on_detach), ctx)
     })?;
     Ok(ctx)
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+/// Information about a Phidget.
+///
+/// This information can be gathered piecemeal from any `Phidget`, or
+/// collected all at once in one of this objects, which can also be
+/// serialized if the `serde` trait is enabled.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "camelCase"))]
+pub struct PhidgetInfo {
+    /// The channel name
+    pub channel_name: String,
+    /// The class of the channel
+    pub channel_class: ChannelClass,
+    /// The name of the device
+    pub device_name: String,
+    /// The class of the device
+    pub device_class: DeviceClass,
+    /// The Device ID
+    pub device_id: DeviceId,
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -256,6 +281,18 @@ pub trait Phidget {
     /// Get the name of the device class
     fn device_name(&self) -> Result<String> {
         crate::get_ffi_string(|s| unsafe { ffi::Phidget_getDeviceName(self.as_handle(), s) })
+    }
+
+    /// Gets the full info for the phidget
+    fn info(&self) -> Result<PhidgetInfo> {
+        let info = PhidgetInfo {
+            channel_name: self.channel_name()?,
+            channel_class: self.channel_class()?,
+            device_name: self.device_name()?,
+            device_class: self.device_class()?,
+            device_id: self.device_id()?,
+        };
+        Ok(info)
     }
 
     // ----- Filters -----
