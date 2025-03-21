@@ -24,6 +24,9 @@ use std::{
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "serde")]
+use std::ops::Not;
+
 /// The signature for device attach callbacks
 pub type AttachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
@@ -92,7 +95,11 @@ where
 /// collected all at once in one of this objects, which can also be
 /// serialized if the `serde` trait is enabled.
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "camelCase"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub struct PhidgetInfo {
     /// The channel name
     pub channel_name: String,
@@ -104,6 +111,17 @@ pub struct PhidgetInfo {
     pub device_class: DeviceClass,
     /// The Device ID
     pub device_id: DeviceId,
+    /// The serial number of the device.
+    /// If the device is part of a VINT, this is the serial number of the VINT hub.
+    pub serial_number: i32,
+    /// The hub port (if any)
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "<&bool>::not"))]
+    pub is_hub_port_device: bool,
+    /// The hub port (if any)
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub hub_port: Option<i32>,
+    /// The SKU (part number) of the Phidget
+    pub device_sku: String,
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -123,6 +141,7 @@ pub trait Phidget {
 
     /// Attempt to open the channel, waiting a limited time
     /// for it to connect.
+    /// The maximum time accepted is 49.7 days (i.e. 2^32 milliseconds)
     fn open_wait(&mut self, to: Duration) -> Result<()> {
         let ms = u32::try_from(to.as_millis()).map_err(|_| ReturnCode::InvalidArg)?;
         ReturnCode::result(unsafe { ffi::Phidget_openWaitForAttachment(self.as_mut_handle(), ms) })
@@ -187,6 +206,7 @@ pub trait Phidget {
     }
 
     /// Sets the data interval for the device, if supported.
+    /// This value should be in the min/max data interval range.
     fn set_data_interval(&mut self, interval: Duration) -> Result<()> {
         let ms = u32::try_from(interval.as_millis()).map_err(|_| ReturnCode::InvalidArg)?;
         ReturnCode::result(unsafe { ffi::Phidget_setDataInterval(self.as_mut_handle(), ms) })
@@ -218,14 +238,14 @@ pub trait Phidget {
         ReturnCode::result(unsafe { ffi::Phidget_setDataRate(self.as_mut_handle(), freq) })
     }
 
-    /// Gets the minimum data interval for the device, if supported.
+    /// Gets the minimum data rate for the device, if supported.
     fn min_data_rate(&self) -> Result<f64> {
         let mut freq: f64 = 0.0;
         ReturnCode::result(unsafe { ffi::Phidget_getMinDataRate(self.as_handle(), &mut freq) })?;
         Ok(freq)
     }
 
-    /// Gets the maximum data interval for the device, if supported.
+    /// Gets the maximum data rate for the device, if supported.
     fn max_data_rate(&self) -> Result<f64> {
         let mut freq: f64 = 0.0;
         ReturnCode::result(unsafe { ffi::Phidget_getMaxDataRate(self.as_handle(), &mut freq) })?;
@@ -291,6 +311,10 @@ pub trait Phidget {
             device_name: self.device_name()?,
             device_class: self.device_class()?,
             device_id: self.device_id()?,
+            serial_number: self.serial_number()?,
+            is_hub_port_device: self.is_hub_port_device()?,
+            hub_port: self.hub_port().ok(),
+            device_sku: self.device_sku()?,
         };
         Ok(info)
     }
