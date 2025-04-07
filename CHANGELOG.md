@@ -16,6 +16,7 @@
     - The `Phidget` trait now requires: `fn as_mut_handle(&mut self) -> PhidgetHandle;`
 - Added an example for hotplug events
 
+- The `-sys` crate uses the default install location for the `phidget22.lib` library on Windows, `C:\Program Files\Phidgets\Phidget22`. Therefore no eed to set the `PHIDGET_ROOT` environment variable for the default install.
 
 ## [v0.2.0](https://github.com/fpagliughi/phidget-rs/compare/v0.1.4..v0.2.0)  - 2024-10-21
 

@@ -37,10 +37,23 @@ fn main() {
     let tgt = env::var("TARGET").unwrap();
     println!("debug: Building for target: '{}'", tgt);
 
-    // PHIDGET_ROOT should be set to point to the installation directory of phidgets
+    // PHIDGET_ROOT should be set to point to the installation directory
+    // of phidgets if placed into a non-standard location.
     // (e.g. C:\Program Files\Phidgets\Phidget22)
-    if let Ok(phidget_libs) = env::var("PHIDGET_ROOT") {
-        println!("cargo:rustc-link-search={}", phidget_libs);
+
+    #[cfg(target_os = "windows")]
+    let phidget_libs = match env::var("PHIDGET_ROOT") {
+        Err(std::env::VarError::NotPresent) => {
+            Ok(r"C:\Program Files\Phidgets\Phidget22".to_string())
+        }
+        res => res,
+    };
+
+    #[cfg(not(target_os = "windows"))]
+    let phidget_libs = env::var("PHIDGET_ROOT");
+
+    if let Ok(libs) = phidget_libs {
+        println!("cargo:rustc-link-search={}", libs);
     }
 
     #[cfg(target_os = "macos")]
