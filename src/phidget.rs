@@ -15,7 +15,7 @@
 use crate::{ChannelClass, DeviceClass, DeviceId, Error, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
 use std::{
-    ffi::CStr,
+    ffi::{CStr, CString},
     os::raw::{c_char, c_int, c_void},
     ptr,
     time::Duration,
@@ -105,12 +105,19 @@ pub struct PhidgetInfo {
     pub channel_name: String,
     /// The class of the channel
     pub channel_class: ChannelClass,
+    /// The index of the channel on the device
+    pub channel: i32,
+
+    // TODO: subclass? dev chan count?
     /// The name of the device
     pub device_name: String,
     /// The class of the device
     pub device_class: DeviceClass,
     /// The Device ID
     pub device_id: DeviceId,
+    /// The user-defined label stored in the device Flash (if any)
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub device_label: Option<String>,
     /// The serial number of the device.
     /// If the device is part of a VINT, this is the serial number of the VINT hub.
     pub serial_number: i32,
@@ -122,6 +129,49 @@ pub struct PhidgetInfo {
     pub hub_port: Option<i32>,
     /// The SKU (part number) of the Phidget
     pub device_sku: String,
+}
+
+/// Addressing properties to find Phidget.
+///
+#[derive(Default, Debug, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "camelCase")
+)]
+pub struct PhidgetFilter {
+    // /// The class of the channel
+    // #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    // pub channel_class: Option<ChannelClass>,
+    /// The index of the channel on the device
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub channel: Option<i32>,
+    /// The serial number of the device.
+    /// If the device is part of a VINT, this is the serial number of the VINT hub.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub serial_number: Option<i32>,
+    /// The hub port (if any)
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub is_hub_port_device: Option<bool>,
+    /// The hub port (if any)
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub hub_port: Option<i32>,
+    /// The user-defined label stored in the device Flash
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub device_label: Option<String>,
+}
+
+impl From<PhidgetInfo> for PhidgetFilter {
+    fn from(info: PhidgetInfo) -> Self {
+        Self {
+            //channel_class: Some(info.channel_class),
+            channel: Some(info.channel),
+            serial_number: Some(info.serial_number),
+            is_hub_port_device: Some(info.is_hub_port_device),
+            hub_port: info.hub_port,
+            device_label: info.device_label,
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -308,9 +358,11 @@ pub trait Phidget {
         let info = PhidgetInfo {
             channel_name: self.channel_name()?,
             channel_class: self.channel_class()?,
+            channel: self.channel()?,
             device_name: self.device_name()?,
             device_class: self.device_class()?,
             device_id: self.device_id()?,
+            device_label: self.device_label()?,
             serial_number: self.serial_number()?,
             is_hub_port_device: self.is_hub_port_device()?,
             hub_port: self.hub_port().ok(),
@@ -320,6 +372,26 @@ pub trait Phidget {
     }
 
     // ----- Filters -----
+
+    /// Sets all the searchable parameters to find a device in one call.
+    fn set_filter(&mut self, filter: &PhidgetFilter) -> Result<()> {
+        if let Some(chan) = filter.channel {
+            self.set_channel(chan)?;
+        }
+        if let Some(sn) = filter.serial_number {
+            self.set_serial_number(sn)?;
+        }
+        if let Some(ihpd) = filter.is_hub_port_device {
+            self.set_is_hub_port_device(ihpd)?;
+        }
+        if let Some(hub_port) = filter.hub_port {
+            self.set_hub_port(hub_port)?;
+        }
+        if let Some(ref label) = filter.device_label {
+            self.set_device_label(label)?;
+        }
+        Ok(())
+    }
 
     /// Determines whether this channel is a VINT Hub port channel, or part
     /// of a VINT device attached to a hub port.
@@ -386,6 +458,37 @@ pub trait Phidget {
         ReturnCode::result(unsafe { ffi::Phidget_setDeviceSerialNumber(self.as_mut_handle(), sn) })
     }
 
+    /// Gets the user-defined label that was burned into the device Flash
+    /// memory.
+    fn device_label(&self) -> Result<Option<String>> {
+        unsafe {
+            let mut sku: *const c_char = ptr::null();
+            ReturnCode::result(ffi::Phidget_getDeviceLabel(self.as_handle(), &mut sku))?;
+            Ok(match sku.is_null() {
+                true => None,
+                false => Some(CStr::from_ptr(sku).to_string_lossy().into_owned()),
+            })
+        }
+    }
+
+    /// Sets the user-defined label to use to search for the device.
+    /// Note that this does not write a new label to the device's Flash memory.
+    /// For that, see `Self::write_device_label()`
+    fn set_device_label(&mut self, label: &str) -> Result<()> {
+        let label = CString::new(label)?;
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setDeviceLabel(self.as_mut_handle(), label.as_ptr())
+        })
+    }
+
+    /// Write the user-defined label to the on-board Flash memory in the device.
+    fn write_device_label(&mut self, label: &str) -> Result<()> {
+        let label = CString::new(label)?;
+        ReturnCode::result(unsafe {
+            ffi::Phidget_writeDeviceLabel(self.as_mut_handle(), label.as_ptr())
+        })
+    }
+
     /// Gets the SKU (part number) of the Phidget to which the channel
     /// is attached.
     fn device_sku(&self) -> Result<String> {
@@ -438,7 +541,7 @@ impl From<PhidgetHandle> for PhidgetRef {
 
 /////////////////////////////////////////////////////////////////////////////
 
-/// An generic phidget.
+/// A generic phidget.
 ///
 /// This contains a wrapper around a generic PhidgetHandle, which might be
 /// any type of device. It can be queried for additional information and

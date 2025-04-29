@@ -24,32 +24,6 @@ pub type ManagerAttachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 /// The signature for device detach callbacks
 pub type ManagerDetachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
-// Low-level, unsafe callback for device attach events
-unsafe extern "C" fn on_attach_device(
-    _: PhidgetManagerHandle,
-    ctx: *mut c_void,
-    phid: PhidgetHandle,
-) {
-    if !ctx.is_null() {
-        let cb: &mut Box<ManagerAttachCallback> = &mut *(ctx as *mut _);
-        let ph = PhidgetRef::from(phid);
-        cb(&ph);
-    }
-}
-
-// Low-level, unsafe callback for device detach events
-unsafe extern "C" fn on_detach_device(
-    _: PhidgetManagerHandle,
-    ctx: *mut c_void,
-    phid: PhidgetHandle,
-) {
-    if !ctx.is_null() {
-        let cb: &mut Box<ManagerDetachCallback> = &mut *(ctx as *mut _);
-        let ph = PhidgetRef::from(phid);
-        cb(&ph);
-    }
-}
-
 /// Phidget temperature sensor
 pub struct PhidgetManager {
     // Handle to the sensor for the phidget22 library
@@ -80,6 +54,34 @@ impl PhidgetManager {
         ReturnCode::result(unsafe { ffi::PhidgetManager_close(self.mgr) })
     }
 
+    // Low-level, unsafe callback for device attach events
+    // This is called by the underlying C lib.
+    unsafe extern "C" fn on_attach_device(
+        _: PhidgetManagerHandle,
+        ctx: *mut c_void,
+        phid: PhidgetHandle,
+    ) {
+        if !ctx.is_null() {
+            let cb: &mut Box<ManagerAttachCallback> = &mut *(ctx as *mut _);
+            let ph = PhidgetRef::from(phid);
+            cb(&ph);
+        }
+    }
+
+    // Low-level, unsafe callback for device detach events.
+    // This is called by the underlying C lib.
+    unsafe extern "C" fn on_detach_device(
+        _: PhidgetManagerHandle,
+        ctx: *mut c_void,
+        phid: PhidgetHandle,
+    ) {
+        if !ctx.is_null() {
+            let cb: &mut Box<ManagerDetachCallback> = &mut *(ctx as *mut _);
+            let ph = PhidgetRef::from(phid);
+            cb(&ph);
+        }
+    }
+
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
@@ -90,7 +92,7 @@ impl PhidgetManager {
         let ctx = Box::into_raw(cb) as *mut c_void;
 
         ReturnCode::result(unsafe {
-            ffi::PhidgetManager_setOnAttachHandler(self.mgr, Some(on_attach_device), ctx)
+            ffi::PhidgetManager_setOnAttachHandler(self.mgr, Some(Self::on_attach_device), ctx)
         })?;
         self.attach_cb = Some(ctx);
         Ok(())
@@ -106,7 +108,7 @@ impl PhidgetManager {
         let ctx = Box::into_raw(cb) as *mut c_void;
 
         ReturnCode::result(unsafe {
-            ffi::PhidgetManager_setOnDetachHandler(self.mgr, Some(on_detach_device), ctx)
+            ffi::PhidgetManager_setOnDetachHandler(self.mgr, Some(Self::on_detach_device), ctx)
         })?;
         self.detach_cb = Some(ctx);
         Ok(())

@@ -188,6 +188,12 @@ impl From<std::str::Utf8Error> for ReturnCode {
     }
 }
 
+impl From<std::ffi::NulError> for ReturnCode {
+    fn from(_: std::ffi::NulError) -> Self {
+        ReturnCode::Invalid
+    }
+}
+
 /// The error type for the crate is a phidget22 return code.
 pub type Error = ReturnCode;
 
