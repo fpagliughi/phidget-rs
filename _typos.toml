@@ -6,6 +6,7 @@
 
 [default.extend-words]
 thr = "thr"
+typ = "typ"
 
 # Don't bother checking the -sys crate. Too much jibberish.
 [files]
