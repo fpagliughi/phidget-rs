@@ -15,18 +15,17 @@
 
 use crate::{ffi, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{PhidgetHandle, PhidgetManagerHandle};
-use std::os::raw::c_void;
-use std::ptr;
+use std::{ffi::c_void, ptr};
 
-/// The signature for device attach callbacks
+/// The signature for device 'attach' callbacks
 pub type ManagerAttachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
-/// The signature for device detach callbacks
+/// The signature for device 'detach' callbacks
 pub type ManagerDetachCallback = dyn Fn(&PhidgetRef) + Send + 'static;
 
 /// Phidget temperature sensor
 pub struct PhidgetManager {
-    // Handle to the sensor for the phidget22 library
+    // Handle to the manager in the phidget22 library
     mgr: PhidgetManagerHandle,
     // Double-boxed attach callback, if registered
     attach_cb: Option<*mut c_void>,
@@ -45,6 +44,9 @@ impl PhidgetManager {
     }
 
     /// Open the phidget manager.
+    /// Be sure to register Attach and Detach event handlers for the Manager
+    /// before opening it, to ensure you program doesn't miss the events
+    /// reported for devices already connected to your system.
     pub fn open(&mut self) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetManager_open(self.mgr) })
     }

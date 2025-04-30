@@ -13,7 +13,7 @@
 use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetDigitalOutputHandle, PhidgetHandle};
 use std::{
-    os::raw::{c_int, c_void},
+    ffi::{c_int, c_void},
     ptr,
 };
 

@@ -16,7 +16,7 @@ use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnC
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetHumiditySensorHandle as HumiditySensorHandle,
 };
-use std::{mem, os::raw::c_void, ptr};
+use std::{ffi::c_void, mem, ptr};
 
 /// The function signature for the safe Rust humidity change callback.
 pub type HumidityChangeCallback = dyn Fn(&HumiditySensor, f64) + Send + 'static;

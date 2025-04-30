@@ -13,9 +13,8 @@
 use crate::{AttachCallback, DetachCallback, Error, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetDigitalInputHandle, PhidgetHandle};
 use std::{
-    mem,
-    os::raw::{c_int, c_uint, c_void},
-    ptr,
+    ffi::{c_int, c_uint, c_void},
+    mem, ptr,
 };
 
 /// The function signature for the safe Rust digital input state change callback.

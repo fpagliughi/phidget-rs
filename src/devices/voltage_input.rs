@@ -12,7 +12,7 @@
 
 use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageInputHandle};
-use std::{mem, os::raw::c_void, ptr};
+use std::{ffi::c_void, mem, ptr};
 
 /// The function signature for the safe Rust voltage change callback.
 pub type VoltageChangeCallback = dyn Fn(&VoltageInput, f64) + Send + 'static;

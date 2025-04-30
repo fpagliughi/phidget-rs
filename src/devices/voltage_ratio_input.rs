@@ -12,7 +12,7 @@
 //
 use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageRatioInputHandle};
-use std::{mem, os::raw::c_void, ptr};
+use std::{ffi::c_void, mem, ptr};
 
 /// The function type for the safe Rust position change callback.
 pub type VoltageRatioChangeCallback = dyn Fn(&VoltageRatioInput, f64) + Send + 'static;

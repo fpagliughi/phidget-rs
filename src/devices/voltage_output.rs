@@ -12,7 +12,7 @@
 
 use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageOutputHandle};
-use std::{os::raw::c_void, ptr};
+use std::{ffi::c_void, ptr};
 
 /// Phidget voltage output
 pub struct VoltageOutput {

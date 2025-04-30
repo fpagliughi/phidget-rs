@@ -83,7 +83,7 @@
 //! # }
 //! ```
 
-// Platform dependent whether necessary
+// Platform dependent, whether this is necessary
 #![allow(clippy::unnecessary_cast)]
 // Lints
 #![deny(
@@ -127,15 +127,15 @@ pub use crate::net::ServerType;
 
 /// Module containing all implemented devices
 pub mod devices;
-pub mod manager;
-
-// For v0.1.x compatibility, sensors available at the root
 pub use crate::devices::{
-    digital_input::DigitalInput, digital_output::DigitalOutput, hub::Hub,
-    humidity_sensor::HumiditySensor, temperature_sensor::TemperatureSensor,
+    current_input::CurrentInput, digital_input::DigitalInput, digital_output::DigitalOutput,
+    hub::Hub, humidity_sensor::HumiditySensor, temperature_sensor::TemperatureSensor,
     voltage_input::VoltageInput, voltage_output::VoltageOutput,
     voltage_ratio_input::VoltageRatioInput,
 };
+
+pub mod manager;
+pub use crate::manager::{ManagerAttachCallback, ManagerDetachCallback, PhidgetManager};
 
 /// An infinite timeout (wait forever)
 pub const TIMEOUT_INFINITE: Duration = Duration::from_millis(PHIDGET_TIMEOUT_INFINITE as u64);

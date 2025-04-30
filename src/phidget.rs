@@ -15,8 +15,7 @@
 use crate::{ChannelClass, DeviceClass, DeviceId, Error, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle};
 use std::{
-    ffi::{CStr, CString},
-    os::raw::{c_char, c_int, c_void},
+    ffi::{c_char, c_int, c_void, CStr, CString},
     ptr,
     time::Duration,
 };

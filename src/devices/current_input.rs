@@ -12,7 +12,7 @@
 
 use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetCurrentInputHandle as CurrentInputHandle, PhidgetHandle};
-use std::{mem, os::raw::c_void, ptr};
+use std::{ffi::c_void, mem, ptr};
 
 /////////////////////////////////////////////////////////////////////////////
 

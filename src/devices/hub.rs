@@ -13,7 +13,7 @@
 use crate::{AttachCallback, DetachCallback, Error, Phidget, PhidgetRef, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetHubHandle as HubHandle};
 use std::{
-    os::raw::{c_int, c_uint, c_void},
+    ffi::{c_int, c_uint, c_void},
     ptr,
 };
 

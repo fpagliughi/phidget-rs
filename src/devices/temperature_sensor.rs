@@ -14,7 +14,7 @@ use crate::{AttachCallback, DetachCallback, Error, Phidget, PhidgetRef, Result, 
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetTemperatureSensorHandle as TemperatureSensorHandle,
 };
-use std::{mem, os::raw::c_void, ptr};
+use std::{ffi::c_void, mem, ptr};
 
 /////////////////////////////////////////////////////////////////////////////
 
