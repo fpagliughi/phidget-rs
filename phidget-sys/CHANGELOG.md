@@ -1,5 +1,10 @@
 # Change Log for the 'phidget-sys' crate
 
+## v0.1.5  (2025-04-30)
+
+- Regenerated bindings for libphidget22, v1.22.20250324
+
+
 ## v0.1.4  (2024-10-21)
 
 - macOS build Framework search path now includes '/Library/Frameworks'
