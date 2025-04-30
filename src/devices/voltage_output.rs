@@ -34,6 +34,11 @@ impl VoltageOutput {
         Self::from(chan)
     }
 
+    /// Get a reference to the underlying sensor handle
+    pub fn as_channel(&self) -> &PhidgetVoltageOutputHandle {
+        &self.chan
+    }
+
     /// Get the voltage value that the channel will output
     pub fn voltage(&self) -> Result<f64> {
         let mut v: f64 = 0.0;

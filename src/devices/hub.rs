@@ -71,6 +71,11 @@ impl Hub {
         Self::from(chan)
     }
 
+    /// Get a reference to the underlying hub handle
+    pub fn as_channel(&self) -> &HubHandle {
+        &self.chan
+    }
+
     /// Get the mode of the specified hub port
     pub fn port_mode(&self, port: i32) -> Result<HubPortMode> {
         let mut mode: c_uint = 0;

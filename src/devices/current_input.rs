@@ -46,12 +46,12 @@ impl CurrentInput {
     unsafe extern "C" fn on_current_change(
         chan: CurrentInputHandle,
         ctx: *mut c_void,
-        current_input: f64,
+        current: f64,
     ) {
         if !ctx.is_null() {
             let cb: &mut Box<CurrentChangeCallback> = &mut *(ctx as *mut _);
             let sensor = Self::from(chan);
-            cb(&sensor, current_input);
+            cb(&sensor, current);
             mem::forget(sensor);
         }
     }
@@ -114,8 +114,7 @@ impl CurrentInput {
     pub fn set_current_change_trigger(&self, trigger: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetCurrentInput_setCurrentChangeTrigger(self.chan, trigger)
-        })?;
-        Ok(())
+        })
     }
 
     /// Gets the minimum value of the `CurrentChangeTrigger`.

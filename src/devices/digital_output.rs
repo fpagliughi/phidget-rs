@@ -37,6 +37,11 @@ impl DigitalOutput {
         Self::from(chan)
     }
 
+    /// Get a reference to the underlying sensor handle
+    pub fn as_channel(&self) -> &PhidgetDigitalOutputHandle {
+        &self.chan
+    }
+
     /// Set enable failsafe
     pub fn set_enable_failsafe(&self, failsafe_time: u32) -> Result<()> {
         ReturnCode::result(unsafe {
@@ -59,12 +64,6 @@ impl DigitalOutput {
         })?;
         Ok(())
     }
-
-    // /// Set  duty cycle async
-    // pub async fn set_duty_cycle_async(&self, duty_cycle: f64) -> Result<()> {
-    //     _ = duty_cycle;
-    //     unimplemented!();
-    // }
 
     /// Get duty cycle
     pub fn duty_cycle(&self) -> Result<f64> {
@@ -154,12 +153,6 @@ impl DigitalOutput {
         Ok(())
     }
 
-    // /// Set led current limit async
-    // pub async fn set_led_current_limit_async(&self, led_current_limit: f64) -> Result<()> {
-    //     _ = led_current_limit;
-    //     unimplemented!()
-    // }
-
     /// Get led current limit
     pub fn led_current_limit(&self) -> Result<f64> {
         let mut value = 0.0;
@@ -201,12 +194,6 @@ impl DigitalOutput {
     pub fn set_state(&self, state: u8) -> Result<()> {
         ReturnCode::result(unsafe { ffi::PhidgetDigitalOutput_setState(self.chan, state as c_int) })
     }
-
-    // /// Set state async
-    // pub async fn set_state_async(&self, state: u8) -> Result<()> {
-    //     _ = state;
-    //     unimplemented!();
-    // }
 
     /// Get the state of the digital output channel
     pub fn state(&self) -> Result<u8> {

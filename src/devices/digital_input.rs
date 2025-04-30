@@ -95,6 +95,26 @@ impl DigitalInput {
         Self::from(chan)
     }
 
+    // Low-level, unsafe, callback for the digital input state change event.
+    // The context is a double-boxed pointer to the safe Rust callback.
+    unsafe extern "C" fn on_state_change(
+        chan: PhidgetDigitalInputHandle,
+        ctx: *mut c_void,
+        state: c_int,
+    ) {
+        if !ctx.is_null() {
+            let cb: &mut Box<DigitalInputCallback> = &mut *(ctx as *mut _);
+            let sensor = Self::from(chan);
+            cb(&sensor, state as u8);
+            mem::forget(sensor);
+        }
+    }
+
+    /// Get a reference to the underlying sensor handle
+    pub fn as_channel(&self) -> &PhidgetDigitalInputHandle {
+        &self.chan
+    }
+
     /// Set input mode
     pub fn set_input_mode(&self, input_mode: InputMode) -> Result<()> {
         ReturnCode::result(unsafe {
@@ -130,28 +150,6 @@ impl DigitalInput {
         let mut value = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getState(self.chan, &mut value) })?;
         Ok(value as u8)
-    }
-
-    // ---------------------------------------------------
-
-    // Low-level, unsafe, callback for the digital input state change event.
-    // The context is a double-boxed pointer to the safe Rust callback.
-    unsafe extern "C" fn on_state_change(
-        chan: PhidgetDigitalInputHandle,
-        ctx: *mut c_void,
-        state: c_int,
-    ) {
-        if !ctx.is_null() {
-            let cb: &mut Box<DigitalInputCallback> = &mut *(ctx as *mut _);
-            let sensor = Self::from(chan);
-            cb(&sensor, state as u8);
-            mem::forget(sensor);
-        }
-    }
-
-    /// Get a reference to the underlying sensor handle
-    pub fn as_channel(&self) -> &PhidgetDigitalInputHandle {
-        &self.chan
     }
 
     /// Sets a handler to receive digital input state change callbacks.
