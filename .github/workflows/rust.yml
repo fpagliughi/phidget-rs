@@ -10,6 +10,17 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        override: true
+        components: rustfmt
+    - run: cargo fmt --check --all
+
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -20,14 +31,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
 
     - name: Install phidget22
       run: |
         sudo -s eval 'curl -fsSL https://www.phidgets.com/downloads/setup_linux | bash -'
         sudo apt-get install -y libphidget22 libphidget22-dev
 
-    - name: Format check
-      run: cargo fmt --check --all
+    - run: rustc --version
 
     - name: Build check
       run: cargo check --verbose
@@ -35,5 +49,13 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
-    - name: Clippy
-      run: cargo clippy -- -D warnings
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: 1.73.0
+        override: true
+        components: clippy
+    - run: cargo clippy -- -D warnings

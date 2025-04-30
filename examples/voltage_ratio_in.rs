@@ -86,7 +86,6 @@ fn main() -> anyhow::Result<()> {
     println!("Opening Phidget bridge input device...");
     let mut vin = VoltageRatioInput::new();
 
-
     // Whether we should use a hub port directly as the input,
     // and if so, which one?
     vin.set_is_hub_port_device(use_hub)?;
