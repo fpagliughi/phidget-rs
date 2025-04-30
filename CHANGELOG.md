@@ -9,14 +9,19 @@
     - The `GenericPhidget` can currently only be created from a `PhidgetRef`, and implements `Send`.
         - It manages the lifetime of the handle with `ffi::Phidget_retain()` and `ffi::Phidget_release()`.
     - To keep a Phidget from a hotplug add event, convert the `PhidgetRef` to a `GenericPhidget` and send it out of the callback.
-- The `Phidget` trait no longer requires the `Send` trait, though most device types should manually implement `Send` to be useful. 
+- The `Phidget` trait no longer requires the `Send` trait, though most device types should manually implement `Send` to be useful.
+- The `Phidget` trait supports reading and writing device labels to Flash
 - Added DeviceId type and Phidget::device_id() query
 - Themperature senor has getters and setters for `RtdType`, `RtdWireSetup`, and `ThermocoupleType`.
+- Added _serde_ build feature to support serializing data type like `PhidgetInfo`, etc
+- Base types moved to a new _types_ module
+- The -sys crate uses the default installer location for phidget22.lib on Windows by default.
 - [#13](https://github.com/fpagliughi/phidget-rs/pull/13) Implemented Fidget Manager
     - The `Phidget` trait now requires: `fn as_mut_handle(&mut self) -> PhidgetHandle;`
 - Added an example for hotplug events
 
 - The `-sys` crate uses the default install location for the `phidget22.lib` library on Windows, `C:\Program Files\Phidgets\Phidget22`. Therefore no eed to set the `PHIDGET_ROOT` environment variable for the default install.
+
 
 ## [v0.2.0](https://github.com/fpagliughi/phidget-rs/compare/v0.1.4..v0.2.0)  - 2024-10-21
 
