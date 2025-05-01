@@ -1,6 +1,6 @@
 # Change Log for phidget-rs library crate
 
-## v0.3.0  (Unreleased)
+## [v0.2.0](https://github.com/fpagliughi/phidget-rs/compare/v0.2.0..v0.3.0)  - 2024-10-21
 
 - [Breaking] Changes to the `Phidget` trait and non-owning containers.
     - `GenericPhidget` is now an owning wrapper.
