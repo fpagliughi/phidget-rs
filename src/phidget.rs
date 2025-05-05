@@ -572,13 +572,21 @@ impl Drop for GenericPhidget {
     }
 }
 
-impl TryFrom<PhidgetRef> for GenericPhidget {
+impl TryFrom<&PhidgetRef> for GenericPhidget {
     type Error = Error;
 
-    fn try_from(phid: PhidgetRef) -> Result<Self> {
+    fn try_from(phid: &PhidgetRef) -> Result<Self> {
         unsafe {
             ReturnCode::result(ffi::Phidget_retain(phid.0))?;
         }
         Ok(Self(phid.0))
+    }
+}
+
+impl TryFrom<PhidgetRef> for GenericPhidget {
+    type Error = Error;
+
+    fn try_from(phid: PhidgetRef) -> Result<Self> {
+        Self::try_from(&phid)
     }
 }

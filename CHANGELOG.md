@@ -1,5 +1,11 @@
 # Change Log for phidget-rs library crate
 
+## [v0.3.1](https://github.com/fpagliughi/phidget-rs/compare/v0.3.0..v0.3.1)  - 2024-05-05
+
+- Added `TryFrom<&PhidgetRef>` for `GenericPhidget`
+- Re-exported `GenericPhidget` to the top-level module.
+
+
 ## [v0.3.0](https://github.com/fpagliughi/phidget-rs/compare/v0.2.0..v0.3.0)  - 2024-10-21
 
 - [Breaking] Changes to the `Phidget` trait and non-owning containers.
