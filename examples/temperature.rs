@@ -54,6 +54,10 @@ fn main() -> anyhow::Result<()> {
                 .value_parser(value_parser!(i32)),
         )
         .arg(
+            arg!(-t --type [tcType] "Set the thermocouple type [J|K|E|T] (default: K)")
+                .value_parser(value_parser!(char)),
+        )
+        .arg(
             arg!(-i --interval [interval] "Sets the interval (period) for data collection, in ms")
                 .default_value("1000")
                 .value_parser(value_parser!(u32)),
@@ -76,13 +80,29 @@ fn main() -> anyhow::Result<()> {
         sensor.set_channel(chan)?;
     }
 
+    // Determine which thermocouple type to use based on command line argument
+    let tc_type = match opts.get_one::<char>("type") {
+        Some('J') => ThermocoupleType::TypeJ,
+        Some('K') => ThermocoupleType::TypeK,
+        Some('E') => ThermocoupleType::TypeE,
+        Some('T') => ThermocoupleType::TypeT,
+        Some(c) => {
+            println!(
+                "Warning: Unsupported thermocouple type '{}', using K type",
+                c
+            );
+            ThermocoupleType::TypeK
+        }
+        None => ThermocoupleType::TypeK, // Default to K type
+    };
+
+    println!("Using thermocouple type: {:?}", tc_type);
+
     // Create a channel to communicate between the main thread and the attach handler
     let (tx, rx) = std::sync::mpsc::channel();
 
-    // Set up the attach handler
     sensor.set_on_attach_handler(move |_| {
         println!("Temperature sensor attached!");
-
         // Signal the main thread that the device is attached
         let _ = tx.send(());
     })?;
@@ -94,12 +114,13 @@ fn main() -> anyhow::Result<()> {
 
     println!("Opened on hub port: {}!!!!!", port);
 
-    // Wait for the attach event or timeout
     println!("Waiting for device to be attached...");
+
+    // Wait for the attach event or timeout. It's necessary to set the TC type after the attach
+    // handler fires to ensure that the device is connected.
     if rx.recv_timeout(TIMEOUT).is_ok() {
-        // Device is attached, now we can set the thermocouple type
-        match sensor.set_thermocouple_type(ThermocoupleType::TypeJ) {
-            Ok(_) => println!("Successfully set thermocouple type to TypeJ"),
+        match sensor.set_thermocouple_type(tc_type) {
+            Ok(_) => println!("Successfully set thermocouple type to {:?}", tc_type),
             Err(e) => println!("Failed to set thermocouple type: {}", e),
         }
     } else {
