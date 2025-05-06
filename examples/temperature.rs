@@ -14,7 +14,7 @@
 //!
 
 use clap::{arg, value_parser, ArgAction};
-use phidget::{devices::TemperatureSensor, Phidget};
+use phidget::{devices::TemperatureSensor, devices::ThermocoupleType, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
@@ -76,10 +76,35 @@ fn main() -> anyhow::Result<()> {
         sensor.set_channel(chan)?;
     }
 
+    // Create a channel to communicate between the main thread and the attach handler
+    let (tx, rx) = std::sync::mpsc::channel();
+
+    // Set up the attach handler
+    sensor.set_on_attach_handler(move |_| {
+        println!("Temperature sensor attached!");
+
+        // Signal the main thread that the device is attached
+        let _ = tx.send(());
+    })?;
+
+    // Open the device
     sensor.open_wait(TIMEOUT)?;
 
     let port = sensor.hub_port()?;
-    println!("Opened on hub port: {}", port);
+
+    println!("Opened on hub port: {}!!!!!", port);
+
+    // Wait for the attach event or timeout
+    println!("Waiting for device to be attached...");
+    if rx.recv_timeout(TIMEOUT).is_ok() {
+        // Device is attached, now we can set the thermocouple type
+        match sensor.set_thermocouple_type(ThermocoupleType::TypeJ) {
+            Ok(_) => println!("Successfully set thermocouple type to TypeJ"),
+            Err(e) => println!("Failed to set thermocouple type: {}", e),
+        }
+    } else {
+        println!("Timed out waiting for device to attach");
+    }
 
     // Set the acquisition interval (sampling period)
     if let Some(&interval) = opts.get_one::<u32>("interval") {
@@ -90,10 +115,6 @@ fn main() -> anyhow::Result<()> {
     }
 
     println!("\nReading temperature. Hit ^C to exit.");
-
-    // Read a single value...
-    let t = sensor.temperature()?;
-    println!("  {:.1}°C,  {:.1}°F", t, c_to_f(t));
 
     // ...and/or set a callback handler
     sensor.set_on_temperature_change_handler(|_, t: f64| {
