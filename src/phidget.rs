@@ -100,14 +100,13 @@ where
     serde(rename_all = "camelCase")
 )]
 pub struct PhidgetInfo {
+    // TODO: Any more fields? subclass? dev chan count?
     /// The channel name
     pub channel_name: String,
     /// The class of the channel
     pub channel_class: ChannelClass,
     /// The index of the channel on the device
     pub channel: i32,
-
-    // TODO: subclass? dev chan count?
     /// The name of the device
     pub device_name: String,
     /// The class of the device
@@ -115,13 +114,19 @@ pub struct PhidgetInfo {
     /// The Device ID
     pub device_id: DeviceId,
     /// The user-defined label stored in the device Flash (if any)
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    pub device_label: Option<String>,
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "String::is_empty")
+    )]
+    pub device_label: String,
     /// The serial number of the device.
     /// If the device is part of a VINT, this is the serial number of the VINT hub.
     pub serial_number: i32,
     /// The hub port (if any)
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "<&bool>::not"))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "<&bool>::not")
+    )]
     pub is_hub_port_device: bool,
     /// The hub port (if any)
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -139,9 +144,6 @@ pub struct PhidgetInfo {
     serde(rename_all = "camelCase")
 )]
 pub struct PhidgetFilter {
-    // /// The class of the channel
-    // #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    // pub channel_class: Option<ChannelClass>,
     /// The index of the channel on the device
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub channel: Option<i32>,
@@ -163,12 +165,11 @@ pub struct PhidgetFilter {
 impl From<PhidgetInfo> for PhidgetFilter {
     fn from(info: PhidgetInfo) -> Self {
         Self {
-            //channel_class: Some(info.channel_class),
             channel: Some(info.channel),
             serial_number: Some(info.serial_number),
             is_hub_port_device: Some(info.is_hub_port_device),
             hub_port: info.hub_port,
-            device_label: info.device_label,
+            device_label: Some(info.device_label),
         }
     }
 }
@@ -459,13 +460,13 @@ pub trait Phidget {
 
     /// Gets the user-defined label that was burned into the device Flash
     /// memory.
-    fn device_label(&self) -> Result<Option<String>> {
+    fn device_label(&self) -> Result<String> {
         unsafe {
-            let mut sku: *const c_char = ptr::null();
-            ReturnCode::result(ffi::Phidget_getDeviceLabel(self.as_handle(), &mut sku))?;
-            Ok(match sku.is_null() {
-                true => None,
-                false => Some(CStr::from_ptr(sku).to_string_lossy().into_owned()),
+            let mut lbl: *const c_char = ptr::null();
+            ReturnCode::result(ffi::Phidget_getDeviceLabel(self.as_handle(), &mut lbl))?;
+            Ok(match lbl.is_null() {
+                true => String::new(),
+                false => CStr::from_ptr(lbl).to_string_lossy().into_owned(),
             })
         }
     }

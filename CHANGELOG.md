@@ -1,5 +1,11 @@
 # Change Log for phidget-rs library crate
 
+## [v0.3.2](https://github.com/fpagliughi/phidget-rs/compare/v0.3.1..v0.3.2)  - 2024-05-08
+
+- Fixed serde deserialization of `PhidgetInfo`
+- `PhidgetInfo::device_label` changed to a `String` from `Option<String>`
+
+
 ## [v0.3.1](https://github.com/fpagliughi/phidget-rs/compare/v0.3.0..v0.3.1)  - 2024-05-05
 
 - Added `TryFrom<&PhidgetRef>` for `GenericPhidget`
