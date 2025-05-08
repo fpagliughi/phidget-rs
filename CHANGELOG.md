@@ -1,7 +1,9 @@
 # Change Log for phidget-rs library crate
 
-## [v0.3.2](https://github.com/fpagliughi/phidget-rs/compare/v0.3.1..v0.3.2)  - 2024-05-08
+## [v0.4.0](https://github.com/fpagliughi/phidget-rs/compare/v0.3.1..v0.4.0)  - 2024-05-08
 
+- Attach & DEtach callbacks are now device-specific for all the devices
+    - Callbacks get a mutable reference to the specific device, not to a `PhidgetRef`
 - Fixed serde deserialization of `PhidgetInfo`
 - `PhidgetInfo::device_label` changed to a `String` from `Option<String>`
 
@@ -31,7 +33,7 @@
 - [#13](https://github.com/fpagliughi/phidget-rs/pull/13) Implemented Fidget Manager
     - The `Phidget` trait now requires: `fn as_mut_handle(&mut self) -> PhidgetHandle;`
 - Added an example for hotplug events
-- The CLI _utils_ build feaure no longer enabled by default.
+- The CLI _utils_ build feature no longer enabled by default.
 
 - The `-sys` crate:
     - Uses the default install location for the `phidget22.lib` library on Windows, `C:\Program Files\Phidgets\Phidget22`.

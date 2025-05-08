@@ -10,8 +10,6 @@
 // to those terms.
 //
 
-//! Temperature sensors.
-
 use crate::{Error, Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetTemperatureSensorHandle as TemperatureSensorHandle,

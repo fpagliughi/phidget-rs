@@ -10,8 +10,6 @@
 // to those terms.
 //
 
-//! Digital Output channels.
-
 use crate::{Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetDigitalOutputHandle, PhidgetHandle};
 use std::{
@@ -138,7 +136,7 @@ impl DigitalOutput {
         Ok(value)
     }
 
-    /// Set frequency
+    /// Set frequency for PWM output
     pub fn set_frequency(&self, frequency: f64) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalOutput_setFrequency(self.chan, frequency)
@@ -146,7 +144,7 @@ impl DigitalOutput {
         Ok(())
     }
 
-    /// Get frequency
+    /// Get frequency for PWM output
     pub fn frequency(&self) -> Result<f64> {
         let mut value = 0.0;
         ReturnCode::result(unsafe {

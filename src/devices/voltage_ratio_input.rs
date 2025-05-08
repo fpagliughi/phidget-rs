@@ -10,6 +10,7 @@
 // This file may not be copied, modified, or distributed except according
 // to those terms.
 //
+
 use crate::{Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageRatioInputHandle};
 use std::{ffi::c_void, mem, ptr};

@@ -10,8 +10,6 @@
 // to those terms.
 //
 
-//! Digital Input channels.
-
 use crate::{Error, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetDigitalInputHandle, PhidgetHandle};
 use std::{
@@ -158,7 +156,10 @@ impl DigitalInput {
         InputMode::try_from(im)
     }
 
-    /// Set power supply
+    /// Set the type of power supply.
+    /// - Set this to the voltage specified in the attached sensor's data sheet to power it.
+    /// - Set to `PowerSupply::Off` to turn off the supply to save power.
+
     pub fn set_power_supply(&self, power_supply: PowerSupply) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalInput_setPowerSupply(self.chan, power_supply as c_uint)
@@ -166,7 +167,7 @@ impl DigitalInput {
         Ok(())
     }
 
-    /// Get power supply
+    /// Get type of power supply
     pub fn power_supply(&self) -> Result<PowerSupply> {
         let mut ps: ffi::Phidget_PowerSupply = 0;
         ReturnCode::result(unsafe { ffi::PhidgetDigitalInput_getPowerSupply(self.chan, &mut ps) })?;
