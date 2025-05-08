@@ -10,29 +10,14 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, Error, Phidget, PhidgetRef, Result, ReturnCode};
+//! Digital Input channels.
+
+use crate::{Error, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetDigitalInputHandle, PhidgetHandle};
 use std::{
     ffi::{c_int, c_uint, c_void},
     mem, ptr,
 };
-
-/// The function signature for the safe Rust digital input state change callback.
-pub type DigitalInputCallback = dyn Fn(&DigitalInput, u8) + Send + 'static;
-
-/////////////////////////////////////////////////////////////////////////////
-
-/// Phidget digital input
-pub struct DigitalInput {
-    // Handle to the digital input in the phidget22 library
-    chan: PhidgetDigitalInputHandle,
-    // Double-boxed DigitalInputCallback, if registered
-    cb: Option<*mut c_void>,
-    // Double-boxed attach callback, if registered
-    attach_cb: Option<*mut c_void>,
-    // Double-boxed detach callback, if registered
-    detach_cb: Option<*mut c_void>,
-}
 
 /// InputMode for digital input
 /// <http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/phidget22_8h.html#a5ad0740978daad6539d3a8249607bd46>
@@ -85,6 +70,29 @@ impl TryFrom<u32> for PowerSupply {
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////
+
+/// The function type for the safe Rust temperature sensor attach callback.
+pub type AttachCallback = dyn Fn(&mut DigitalInput) + Send + 'static;
+
+/// The function type for the safe Rust temperature sensor detach callback.
+pub type DetachCallback = dyn Fn(&mut DigitalInput) + Send + 'static;
+
+/// The function signature for the safe Rust digital input state change callback.
+pub type DigitalInputCallback = dyn Fn(&DigitalInput, u8) + Send + 'static;
+
+/// Phidget digital input
+pub struct DigitalInput {
+    // Handle to the digital input in the phidget22 library
+    chan: PhidgetDigitalInputHandle,
+    // Double-boxed DigitalInputCallback, if registered
+    cb: Option<*mut c_void>,
+    // Double-boxed attach callback, if registered
+    attach_cb: Option<*mut c_void>,
+    // Double-boxed detach callback, if registered
+    detach_cb: Option<*mut c_void>,
+}
+
 impl DigitalInput {
     /// Create a new digital input.
     pub fn new() -> Self {
@@ -93,6 +101,26 @@ impl DigitalInput {
             ffi::PhidgetDigitalInput_create(&mut chan);
         }
         Self::from(chan)
+    }
+
+    // Low-level, unsafe callback for device attach events
+    unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
+        if !ctx.is_null() {
+            let cb: &mut Box<AttachCallback> = &mut *(ctx as *mut _);
+            let mut sensor = Self::from(phid as PhidgetDigitalInputHandle);
+            cb(&mut sensor);
+            mem::forget(sensor);
+        }
+    }
+
+    // Low-level, unsafe callback for device detach events
+    unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
+        if !ctx.is_null() {
+            let cb: &mut Box<DetachCallback> = &mut *(ctx as *mut _);
+            let mut sensor = Self::from(phid as PhidgetDigitalInputHandle);
+            cb(&mut sensor);
+            mem::forget(sensor);
+        }
     }
 
     // Low-level, unsafe, callback for the digital input state change event.
@@ -174,9 +202,15 @@ impl DigitalInput {
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&PhidgetRef) + Send + 'static,
+        F: Fn(&mut DigitalInput) + Send + 'static,
     {
-        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnAttachHandler(self.as_mut_handle(), Some(Self::on_attach), ctx)
+        })?;
         self.attach_cb = Some(ctx);
         Ok(())
     }
@@ -184,9 +218,15 @@ impl DigitalInput {
     /// Sets a handler to receive detach callbacks
     pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&PhidgetRef) + Send + 'static,
+        F: Fn(&mut DigitalInput) + Send + 'static,
     {
-        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnDetachHandler(self.as_mut_handle(), Some(Self::on_detach), ctx)
+        })?;
         self.detach_cb = Some(ctx);
         Ok(())
     }

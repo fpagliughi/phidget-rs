@@ -102,7 +102,8 @@ fn main() -> anyhow::Result<()> {
 
     let interval = opts
         .get_one::<u32>("interval")
-        .map(|&i| Duration::from_millis(i as u64));
+        .map(|&i| Duration::from_millis(i as u64))
+        .unwrap();
 
     // When the sensor is attached, set some params
     sensor.set_on_attach_handler(move |sensor| {
@@ -117,10 +118,8 @@ fn main() -> anyhow::Result<()> {
         }
 
         // Set the acquisition interval (sampling period)
-        if let Some(dur) = interval {
-            if let Err(err) = sensor.set_data_interval(dur) {
-                eprintln!("Error setting interval: {}", err);
-            }
+        if let Err(err) = sensor.set_data_interval(interval) {
+            eprintln!("Error setting interval: {}", err);
         }
     })?;
 

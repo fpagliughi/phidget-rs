@@ -10,13 +10,16 @@
 // to those terms.
 //
 
-//! Phidget temperature sensors.
+//! Temperature sensors.
 
 use crate::{Error, Phidget, Result, ReturnCode};
 use phidget_sys::{
     self as ffi, PhidgetHandle, PhidgetTemperatureSensorHandle as TemperatureSensorHandle,
 };
 use std::{ffi::c_void, mem, ptr};
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -25,6 +28,7 @@ use std::{ffi::c_void, mem, ptr};
 /// A Resistance Temperature Detector (RTD) is a sensor whose
 /// resistance changes as its temperature changes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u32)]
 #[allow(missing_docs)]
 pub enum RtdType {
@@ -53,6 +57,7 @@ impl TryFrom<u32> for RtdType {
 ///
 /// The type of wire setup for TRD sensors.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u32)]
 #[allow(missing_docs)]
 pub enum RtdWireSetup {
@@ -77,6 +82,7 @@ impl TryFrom<u32> for RtdWireSetup {
 
 /// Phidget Temperature Sensor Thermocouple Types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u32)]
 #[allow(missing_docs)]
 pub enum ThermocoupleType {

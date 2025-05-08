@@ -18,7 +18,7 @@ use phidget::{devices::HumiditySensor, Phidget};
 use std::{thread, time::Duration};
 
 // Open/connect timeout
-const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
+const ATTACH_TIMEOUT: Duration = Duration::from_secs(5);
 
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -71,18 +71,30 @@ fn main() -> anyhow::Result<()> {
         sensor.set_channel(chan)?;
     }
 
-    sensor.open_wait(TIMEOUT)?;
+    let interval = opts
+        .get_one::<u32>("interval")
+        .map(|&i| Duration::from_millis(i as u64))
+        .unwrap();
+
+    // When the sensor is attached, set some params
+    sensor.set_on_attach_handler(move |sensor| {
+        println!("\nHumidity sensor attached!");
+
+        // Set the acquisition interval (sampling period)
+        if let Err(err) = sensor.set_data_interval(interval) {
+            eprintln!("Error setting interval: {}", err);
+        }
+    })?;
+
+    sensor.set_on_detach_handler(|_| {
+        println!("Humidity sensor detached!");
+    })?;
+
+    // Open the sensor and wait for it to attachment.
+    sensor.open_wait(ATTACH_TIMEOUT)?;
 
     let port = sensor.hub_port()?;
     println!("Opened on hub port: {}", port);
-
-    // Set the acquisition interval (sampling period)
-    if let Some(&interval) = opts.get_one::<u32>("interval") {
-        let dur = Duration::from_millis(interval as u64);
-        if let Err(err) = sensor.set_data_interval(dur) {
-            eprintln!("Error setting interval: {}", err);
-        }
-    }
 
     println!("\nReading humidity. Hit ^C to exit.");
 

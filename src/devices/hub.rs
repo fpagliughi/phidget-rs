@@ -10,17 +10,21 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, Error, Phidget, PhidgetRef, Result, ReturnCode};
+use crate::{Error, Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetHubHandle as HubHandle};
 use std::{
     ffi::{c_int, c_uint, c_void},
-    ptr,
+    mem, ptr,
 };
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /////////////////////////////////////////////////////////////////////////////
 
 /// Possible operational modes for a hub port
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u32)]
 pub enum HubPortMode {
     /// Communicate with a smart VINT device
@@ -51,6 +55,14 @@ impl TryFrom<u32> for HubPortMode {
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////
+
+/// The function type for the safe Rust Hub attach callback.
+pub type AttachCallback = dyn Fn(&mut Hub) + Send + 'static;
+
+/// The function type for the safe Rust temperature sensor detach callback.
+pub type DetachCallback = dyn Fn(&mut Hub) + Send + 'static;
+
 /// Phidget Hub
 pub struct Hub {
     // Handle to the hub in the phidget22 library
@@ -69,6 +81,26 @@ impl Hub {
             ffi::PhidgetHub_create(&mut chan);
         }
         Self::from(chan)
+    }
+
+    // Low-level, unsafe callback for device attach events
+    unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
+        if !ctx.is_null() {
+            let cb: &mut Box<AttachCallback> = &mut *(ctx as *mut _);
+            let mut sensor = Self::from(phid as HubHandle);
+            cb(&mut sensor);
+            mem::forget(sensor);
+        }
+    }
+
+    // Low-level, unsafe callback for device detach events
+    unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
+        if !ctx.is_null() {
+            let cb: &mut Box<DetachCallback> = &mut *(ctx as *mut _);
+            let mut sensor = Self::from(phid as HubHandle);
+            cb(&mut sensor);
+            mem::forget(sensor);
+        }
     }
 
     /// Get a reference to the underlying hub handle
@@ -132,9 +164,15 @@ impl Hub {
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&PhidgetRef) + Send + 'static,
+        F: Fn(&mut Hub) + Send + 'static,
     {
-        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnAttachHandler(self.as_mut_handle(), Some(Self::on_attach), ctx)
+        })?;
         self.attach_cb = Some(ctx);
         Ok(())
     }
@@ -142,9 +180,15 @@ impl Hub {
     /// Sets a handler to receive detach callbacks
     pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&PhidgetRef) + Send + 'static,
+        F: Fn(&mut Hub) + Send + 'static,
     {
-        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnDetachHandler(self.as_mut_handle(), Some(Self::on_detach), ctx)
+        })?;
         self.detach_cb = Some(ctx);
         Ok(())
     }

@@ -10,9 +10,17 @@
 // to those terms.
 //
 
-use crate::{AttachCallback, DetachCallback, Phidget, PhidgetRef, Result, ReturnCode};
+use crate::{Phidget, Result, ReturnCode};
 use phidget_sys::{self as ffi, PhidgetHandle, PhidgetVoltageOutputHandle};
-use std::{ffi::c_void, ptr};
+use std::{ffi::c_void, mem, ptr};
+
+/////////////////////////////////////////////////////////////////////////////
+
+/// The function type for the safe Rust voltage output attach callback.
+pub type AttachCallback = dyn Fn(&mut VoltageOutput) + Send + 'static;
+
+/// The function type for the safe Rust voltage output detach callback.
+pub type DetachCallback = dyn Fn(&mut VoltageOutput) + Send + 'static;
 
 /// Phidget voltage output
 pub struct VoltageOutput {
@@ -32,6 +40,26 @@ impl VoltageOutput {
             ffi::PhidgetVoltageOutput_create(&mut chan);
         }
         Self::from(chan)
+    }
+
+    // Low-level, unsafe callback for device attach events
+    unsafe extern "C" fn on_attach(phid: PhidgetHandle, ctx: *mut c_void) {
+        if !ctx.is_null() {
+            let cb: &mut Box<AttachCallback> = &mut *(ctx as *mut _);
+            let mut sensor = Self::from(phid as PhidgetVoltageOutputHandle);
+            cb(&mut sensor);
+            mem::forget(sensor);
+        }
+    }
+
+    // Low-level, unsafe callback for device detach events
+    unsafe extern "C" fn on_detach(phid: PhidgetHandle, ctx: *mut c_void) {
+        if !ctx.is_null() {
+            let cb: &mut Box<DetachCallback> = &mut *(ctx as *mut _);
+            let mut sensor = Self::from(phid as PhidgetVoltageOutputHandle);
+            cb(&mut sensor);
+            mem::forget(sensor);
+        }
     }
 
     /// Get a reference to the underlying sensor handle
@@ -54,9 +82,15 @@ impl VoltageOutput {
     /// Sets a handler to receive attach callbacks
     pub fn set_on_attach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&PhidgetRef) + Send + 'static,
+        F: Fn(&mut VoltageOutput) + Send + 'static,
     {
-        let ctx = crate::phidget::set_on_attach_handler(self, cb)?;
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<AttachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnAttachHandler(self.as_mut_handle(), Some(Self::on_attach), ctx)
+        })?;
         self.attach_cb = Some(ctx);
         Ok(())
     }
@@ -64,9 +98,15 @@ impl VoltageOutput {
     /// Sets a handler to receive detach callbacks
     pub fn set_on_detach_handler<F>(&mut self, cb: F) -> Result<()>
     where
-        F: Fn(&PhidgetRef) + Send + 'static,
+        F: Fn(&mut VoltageOutput) + Send + 'static,
     {
-        let ctx = crate::phidget::set_on_detach_handler(self, cb)?;
+        // 1st box is fat ptr, 2nd is regular pointer.
+        let cb: Box<Box<DetachCallback>> = Box::new(Box::new(cb));
+        let ctx = Box::into_raw(cb) as *mut c_void;
+
+        ReturnCode::result(unsafe {
+            ffi::Phidget_setOnDetachHandler(self.as_mut_handle(), Some(Self::on_detach), ctx)
+        })?;
         self.detach_cb = Some(ctx);
         Ok(())
     }
