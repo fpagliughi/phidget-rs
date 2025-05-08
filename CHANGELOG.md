@@ -2,8 +2,9 @@
 
 ## [v0.4.0](https://github.com/fpagliughi/phidget-rs/compare/v0.3.1..v0.4.0)  - 2024-05-08
 
-- Attach & DEtach callbacks are now device-specific for all the devices
+- Attach & Detach callbacks are now device-specific for all the devices
     - Callbacks get a mutable reference to the specific device, not to a `PhidgetRef`
+- Added support for Pressure Sensors
 - Fixed serde deserialization of `PhidgetInfo`
 - `PhidgetInfo::device_label` changed to a `String` from `Option<String>`
 
@@ -14,7 +15,7 @@
 - Re-exported `GenericPhidget` to the top-level module.
 
 
-## [v0.3.0](https://github.com/fpagliughi/phidget-rs/compare/v0.2.0..v0.3.0)  - 2024-10-21
+## [v0.3.0](https://github.com/fpagliughi/phidget-rs/compare/v0.2.0..v0.3.0)  - 2025-04-30
 
 - [Breaking] Changes to the `Phidget` trait and non-owning containers.
     - `GenericPhidget` is now an owning wrapper.
