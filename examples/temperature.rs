@@ -100,52 +100,45 @@ fn main() -> anyhow::Result<()> {
         println!("Using thermocouple type: {:?}", t);
     }
 
-    // Create a channel to communicate between the main thread and the attach handler
-    let (tx, rx) = std::sync::mpsc::channel();
+    let interval = opts
+        .get_one::<u32>("interval")
+        .map(|&i| Duration::from_millis(i as u64));
 
-    sensor.set_on_attach_handler(move |_| {
-        println!("Temperature sensor attached!");
-        // Signal the main thread that the device is attached
-        let _ = tx.send(());
+    // When the sensor is attached, set some params
+    sensor.set_on_attach_handler(move |sensor| {
+        println!("\nTemperature sensor attached!");
+
+        // Set the thermocouple type
+        if let Some(tc_type) = tc_type {
+            match sensor.set_thermocouple_type(tc_type) {
+                Ok(_) => println!("Set thermocouple type to {:?}", tc_type),
+                Err(err) => eprintln!("Failed to set thermocouple type: {}", err),
+            }
+        }
+
+        // Set the acquisition interval (sampling period)
+        if let Some(dur) = interval {
+            if let Err(err) = sensor.set_data_interval(dur) {
+                eprintln!("Error setting interval: {}", err);
+            }
+        }
+    })?;
+
+    sensor.set_on_detach_handler(|_| {
+        println!("Temperature sensor detached!");
+    })?;
+
+    // ...and/or set a callback handler
+    sensor.set_on_temperature_change_handler(|_, t: f64| {
+        println!("  {:.1}°C,  {:.1}°F", t, c_to_f(t));
     })?;
 
     // Open the device
     sensor.open_wait(TIMEOUT)?;
 
     let port = sensor.hub_port()?;
-
     println!("Opened on hub port: {}", port);
-
-    println!("Waiting for device to be attached...");
-
-    // Wait for the attach event or timeout. It's necessary to set the TC type after the attach
-    // handler fires to ensure that the device is connected.
-    if rx.recv_timeout(TIMEOUT).is_ok() {
-        if let Some(tc_type) = tc_type {
-            match sensor.set_thermocouple_type(tc_type) {
-                Ok(_) => println!("Successfully set thermocouple type to {:?}", tc_type),
-                Err(e) => println!("Failed to set thermocouple type: {}", e),
-            }
-        }
-    }
-    else {
-        println!("Timed out waiting for device to attach");
-    }
-
-    // Set the acquisition interval (sampling period)
-    if let Some(&interval) = opts.get_one::<u32>("interval") {
-        let dur = Duration::from_millis(interval as u64);
-        if let Err(err) = sensor.set_data_interval(dur) {
-            eprintln!("Error setting interval: {}", err);
-        }
-    }
-
     println!("\nReading temperature. Hit ^C to exit.");
-
-    // ...and/or set a callback handler
-    sensor.set_on_temperature_change_handler(|_, t: f64| {
-        println!("  {:.1}°C,  {:.1}°F", t, c_to_f(t));
-    })?;
 
     // ^C handler wakes up the main thread to exit
     ctrlc::set_handler({
