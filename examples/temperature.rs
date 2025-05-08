@@ -18,7 +18,7 @@ use phidget::{devices::TemperatureSensor, devices::ThermocoupleType, Phidget};
 use std::{thread, time::Duration};
 
 // The open/connect timeout
-const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
+const TIMEOUT: Duration = Duration::from_secs(5);
 
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -54,7 +54,8 @@ fn main() -> anyhow::Result<()> {
                 .value_parser(value_parser!(i32)),
         )
         .arg(
-            arg!(-t --type [tcType] "Set the thermocouple type [J|K|E|T] (default: K)")
+            arg!(-t --type [tcType] "Set the thermocouple type [J|K|E|T]")
+                .value_parser(["J", "K", "E", "T"])
                 .value_parser(value_parser!(char)),
         )
         .arg(
@@ -81,22 +82,23 @@ fn main() -> anyhow::Result<()> {
     }
 
     // Determine which thermocouple type to use based on command line argument
-    let tc_type = match opts.get_one::<char>("type") {
-        Some('J') => ThermocoupleType::TypeJ,
-        Some('K') => ThermocoupleType::TypeK,
-        Some('E') => ThermocoupleType::TypeE,
-        Some('T') => ThermocoupleType::TypeT,
-        Some(c) => {
-            println!(
-                "Warning: Unsupported thermocouple type '{}', using K type",
-                c
-            );
-            ThermocoupleType::TypeK
+    let tc_type = opts.get_one::<char>("type").map(|c| {
+        use ThermocoupleType::*;
+        match c {
+            'J' => TypeJ,
+            'K' => TypeK,
+            'E' => TypeE,
+            'T' => TypeT,
+            _ => {
+                eprintln!("Error: Unsupported thermocouple type '{c}'");
+                std::process::exit(1);
+            }
         }
-        None => ThermocoupleType::TypeK, // Default to K type
-    };
+    });
 
-    println!("Using thermocouple type: {:?}", tc_type);
+    if let Some(ref t) = tc_type {
+        println!("Using thermocouple type: {:?}", t);
+    }
 
     // Create a channel to communicate between the main thread and the attach handler
     let (tx, rx) = std::sync::mpsc::channel();
@@ -112,18 +114,21 @@ fn main() -> anyhow::Result<()> {
 
     let port = sensor.hub_port()?;
 
-    println!("Opened on hub port: {}!!!!!", port);
+    println!("Opened on hub port: {}", port);
 
     println!("Waiting for device to be attached...");
 
     // Wait for the attach event or timeout. It's necessary to set the TC type after the attach
     // handler fires to ensure that the device is connected.
     if rx.recv_timeout(TIMEOUT).is_ok() {
-        match sensor.set_thermocouple_type(tc_type) {
-            Ok(_) => println!("Successfully set thermocouple type to {:?}", tc_type),
-            Err(e) => println!("Failed to set thermocouple type: {}", e),
+        if let Some(tc_type) = tc_type {
+            match sensor.set_thermocouple_type(tc_type) {
+                Ok(_) => println!("Successfully set thermocouple type to {:?}", tc_type),
+                Err(e) => println!("Failed to set thermocouple type: {}", e),
+            }
         }
-    } else {
+    }
+    else {
         println!("Timed out waiting for device to attach");
     }
 
