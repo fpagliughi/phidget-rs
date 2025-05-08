@@ -16,9 +16,6 @@ use phidget_sys::{
 };
 use std::{ffi::c_void, mem, ptr};
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
 /////////////////////////////////////////////////////////////////////////////
 
 /// The function type for the safe Rust pressure sensor attach callback.
