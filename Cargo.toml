@@ -24,15 +24,15 @@ serde = ["dep:serde", "serde_json"]
 [dependencies]
 phidget-sys = { version = "0.1", path = "phidget-sys" }
 anyhow = { version = "1.0", optional = true }
-clap = { version = "3.2", optional = true }
-ctrlc = { version = "3.2", features = [ "termination" ], optional = true }
+clap = { version = "4.4", optional = true }
+ctrlc = { version = "3.4", features = [ "termination" ], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
 
 [dev-dependencies]
 anyhow = "1.0"
-clap = "3.2"
-ctrlc = { version = "3.2", features = [ "termination" ] }
+clap = "4.4"
+ctrlc = { version = "3.4", features = [ "termination" ] }
 
 [[bin]]
 name = "phidget"

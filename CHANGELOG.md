@@ -8,6 +8,8 @@
 - Added examples for digital and voltage (analog) outputs
 - Fixed serde deserialization of `PhidgetInfo`
 - `PhidgetInfo::device_label` changed to a `String` from `Option<String>`
+- Bumped -sys crate's MSRV to v1.73.0
+- Bumped `clap` dependency to v4.4 for utils and examples
 - [#14](https://github.com/fpagliughi/phidget-rs/pull/14) Added thermocouple-type parameter to temperature sensor example.
 
 ## [v0.3.1](https://github.com/fpagliughi/phidget-rs/compare/v0.3.0..v0.3.1)  - 2024-05-05

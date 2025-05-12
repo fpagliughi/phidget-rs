@@ -66,7 +66,7 @@ fn main() -> anyhow::Result<()> {
     let _opts = cmd.get_matches();
 
     #[cfg(feature = "serde")]
-    let use_json = _opts.is_present("json");
+    let use_json = _opts.get_flag("json");
 
     println!("Opening Phidget device manager...");
     let mut mgr = PhidgetManager::new();
