@@ -5,6 +5,9 @@
 # - Build check using the current stable compiler and the MSRV version.
 # - Clippy check using the MSRV compiler
 #
+# Note that the current MSRV predates the new cargo resolver, v3, so we go
+# out of or way to use it from stable to create a Cargo.lock file that 
+# properly resolves dependencies for the MSRV.
 
 name: Rust
 
@@ -42,17 +45,21 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: ${{ matrix.rust }}
-        override: true
 
     - name: Install phidget22
       run: |
         sudo -s eval 'curl -fsSL https://www.phidgets.com/downloads/setup_linux | bash -'
         sudo apt-get install -y libphidget22 libphidget22-dev
 
-    - run: rustc --version
+    - name: Resolve dependencies for MSRV
+      run: |
+        mkdir -p $HOME/.cargo
+        echo 'resolver.incompatible-rust-version = "fallback"' > $HOME/.cargo/config.toml
+        cargo +stable update
 
     - name: Build check
-      run: cargo check --verbose
+      run: |
+        cargo +${{ matrix.rust }} check --verbose
 
     - name: Run tests
       run: cargo test --verbose
