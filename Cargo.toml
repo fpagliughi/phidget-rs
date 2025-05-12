@@ -20,6 +20,7 @@ Phidget library for Rust.
 default = []
 utils = ["anyhow", "clap", "ctrlc"]
 serde = ["dep:serde", "serde_json"]
+full = ["utils", "serde"]
 
 [dependencies]
 phidget-sys = { version = "0.1", path = "phidget-sys" }

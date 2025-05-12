@@ -39,6 +39,11 @@ jobs:
         rust:
           - stable
           - 1.73.0
+        features:
+          - default
+          - utils
+          - serde
+          - full
 
     steps:
     - uses: actions/checkout@v3
@@ -59,10 +64,7 @@ jobs:
 
     - name: Build check
       run: |
-        cargo +${{ matrix.rust }} check --verbose
-        cargo +${{ matrix.rust }} check --features=utils --verbose
-        cargo +${{ matrix.rust }} check --features=serde --verbose
-        cargo +${{ matrix.rust }} check --features="utils,serde" --verbose
+        cargo +${{ matrix.rust }} check --features=${{ matrix.features }} --verbose
 
     - name: Run tests
       run: cargo +${{ matrix.rust }} test --verbose
