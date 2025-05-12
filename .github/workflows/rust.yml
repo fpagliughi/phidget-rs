@@ -54,15 +54,18 @@ jobs:
     - name: Resolve dependencies for MSRV
       run: |
         mkdir -p $HOME/.cargo
-        echo 'resolver.incompatible-rust-version = "fallback"' > $HOME/.cargo/config.toml
+        echo 'resolver.incompatible-rust-versions = "fallback"' > $HOME/.cargo/config.toml
         cargo +stable update
 
     - name: Build check
       run: |
         cargo +${{ matrix.rust }} check --verbose
+        cargo +${{ matrix.rust }} check --features=utils --verbose
+        cargo +${{ matrix.rust }} check --features=serde --verbose
+        cargo +${{ matrix.rust }} check --features="utils,serde" --verbose
 
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo +${{ matrix.rust }} test --verbose
 
   clippy:
     runs-on: ubuntu-latest
