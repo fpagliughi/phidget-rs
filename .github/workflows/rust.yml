@@ -1,3 +1,11 @@
+# GitHub Actions CI check for the 'phidgets-rs' Rust crate
+#
+# It does the following:
+# - Format check of the sources using nightly
+# - Build check using the current stable compiler and the MSRV version.
+# - Clippy check using the MSRV compiler
+#
+
 name: Rust
 
 on:

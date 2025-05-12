@@ -1,4 +1,4 @@
-// phidget-rs/examples/MONITOR.rs
+// phidget-rs/examples/monitor.rs
 //
 // Copyright (c) 2025, Frank Pagliughi
 //

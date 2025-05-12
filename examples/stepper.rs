@@ -1,4 +1,4 @@
-// phidget-rs/examples/temperature.rs
+// phidget-rs/examples/stepper.rs
 //
 // Copyright (c) 2023, Frank Pagliughi
 //
@@ -14,9 +14,7 @@
 //!
 use clap::{arg, value_parser, ArgAction};
 use phidget::Phidget;
-use std::{thread, time::Duration};
-// The open/connect timeout
-const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
+use std::thread;
 
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -24,10 +22,10 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 // --------------------------------------------------------------------------
 
 fn main() -> anyhow::Result<()> {
-    let opts = clap::Command::new("digital_in")
+    let opts = clap::Command::new("stepper")
         .version(VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
-        .about("Phidget Digital Input Example")
+        .about("Phidget Stepper Motor Example")
         .disable_help_flag(true)
         .arg(
             arg!(--help "Print help information")
@@ -75,7 +73,7 @@ fn main() -> anyhow::Result<()> {
         target_position = target;
     }
 
-    stepper.open_wait(TIMEOUT)?;
+    stepper.open_wait_default()?;
 
     let port = stepper.hub_port()?;
     println!("Opened on hub port: {}", port);

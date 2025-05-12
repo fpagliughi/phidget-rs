@@ -36,20 +36,16 @@ use clap::{arg, value_parser, ArgAction};
 use phidget::{devices::VoltageRatioInput, Phidget};
 use std::{thread, time::Duration};
 
-// The open/connect timeout
-// const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
-const TIMEOUT: Duration = phidget::TIMEOUT_DEFAULT;
-
 // The package version is used as the app version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // --------------------------------------------------------------------------
 
 fn main() -> anyhow::Result<()> {
-    let opts = clap::Command::new("bridge_in")
+    let opts = clap::Command::new("voltage_ratio_in")
         .version(VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
-        .about("Phidget Voltage (Analog) Input Example")
+        .about("Phidget Voltage Ratio Input Example")
         .disable_help_flag(true)
         .arg(
             arg!(--help "Print help information")
@@ -105,7 +101,7 @@ fn main() -> anyhow::Result<()> {
     let offset = *opts.get_one::<f64>("offset").unwrap();
     let gain = *opts.get_one::<f64>("gain").unwrap();
 
-    vin.open_wait(TIMEOUT)?;
+    vin.open_wait_default()?;
 
     if use_hub {
         let port = vin.hub_port()?;

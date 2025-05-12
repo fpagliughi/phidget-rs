@@ -157,9 +157,9 @@ impl DigitalInput {
     }
 
     /// Set the type of power supply.
+    ///
     /// - Set this to the voltage specified in the attached sensor's data sheet to power it.
     /// - Set to `PowerSupply::Off` to turn off the supply to save power.
-
     pub fn set_power_supply(&self, power_supply: PowerSupply) -> Result<()> {
         ReturnCode::result(unsafe {
             ffi::PhidgetDigitalInput_setPowerSupply(self.chan, power_supply as c_uint)
