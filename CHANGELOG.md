@@ -5,9 +5,10 @@
 - Attach & Detach callbacks are now device-specific for all the devices
     - Callbacks get a mutable reference to the specific device, not to a `PhidgetRef`
 - Added support for Pressure Sensors
+- Added examples for digital and voltage (analog) outputs
 - Fixed serde deserialization of `PhidgetInfo`
 - `PhidgetInfo::device_label` changed to a `String` from `Option<String>`
-
+- [#14](https://github.com/fpagliughi/phidget-rs/pull/14) Added thermocouple-type parameter to temperature sensor example.
 
 ## [v0.3.1](https://github.com/fpagliughi/phidget-rs/compare/v0.3.0..v0.3.1)  - 2024-05-05
 
